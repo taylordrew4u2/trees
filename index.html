@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+    <title>Comedy Set Organizer</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- ElevenLabs Conversational AI Widget -->
+    <elevenlabs-convai agent-id="agent_7401ka31ry6qftr9ab89em3339w9"></elevenlabs-convai>
+    <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>Comedy Set Organizer</h1>
+            <nav>
+                <button data-view="home">Home</button>
+                <button data-view="jokes">Jokes</button>
+                <button data-view="setlists">Set Lists</button>
+                <button data-view="recordings">Recordings</button>
+                <button data-view="create-setlist">+ New Set</button>
+            </nav>
+        </header>
+
+        <main id="main-content">
+            <!-- Views are dynamically loaded here -->
+        </main>
+    </div>
+
+    <!-- Templates for views (hidden) -->
+    <div id="templates" style="display:none;">
+        <!-- Home view -->
+        <div id="home-view" class="view">
+            <div class="home-buttons">
+                <button class="home-button" data-view="jokes">
+                    <span class="icon">📝</span>
+                    <span class="title">Jokes</span>
+                    <span class="subtitle">Manage your joke library</span>
+                </button>
+                <button class="home-button" data-view="create-setlist">
+                    <span class="icon">➕</span>
+                    <span class="title">Create Set List</span>
+                    <span class="subtitle">Build a new performance set</span>
+                </button>
+                <button class="home-button" data-view="setlists">
+                    <span class="icon">📋</span>
+                    <span class="title">Set Lists</span>
+                    <span class="subtitle">Your saved performance sets</span>
+                </button>
+                <button class="home-button" data-view="recordings">
+                    <span class="icon">🎤</span>
+                    <span class="title">Recordings</span>
+                    <span class="subtitle">Review your performances</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Jokes list view -->
+        <div id="jokes-view" class="view">
+            <div class="view-header">
+                <h2>Jokes</h2>
+                <button id="add-joke-btn" class="btn-primary">+ Add Joke</button>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="joke-search" placeholder="Search jokes..." aria-label="Search jokes">
+            </div>
+            <div id="jokes-list" class="list"></div>
+        </div>
+
+        <!-- Add/Edit Joke view -->
+        <div id="joke-form-view" class="view">
+            <div class="view-header">
+                <h2 id="joke-form-title">Add Joke</h2>
+                <button id="cancel-joke-btn" class="btn-secondary">Cancel</button>
+            </div>
+            <form id="joke-form">
+                <div class="form-group">
+                    <label for="joke-title">Title (1-20 chars)</label>
+                    <input type="text" id="joke-title" maxlength="20" required>
+                </div>
+                <div class="form-group">
+                    <label for="joke-body">Body</label>
+                    <textarea id="joke-body" rows="6"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Save</button>
+                    <button type="button" id="delete-joke-btn" class="btn-danger" style="display:none;">Delete</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Set Lists view -->
+        <div id="setlists-view" class="view">
+            <div class="view-header">
+                <h2>Set Lists</h2>
+                <button data-view="create-setlist" class="btn-primary">+ New Set List</button>
+            </div>
+            <div id="setlists-list" class="list"></div>
+        </div>
+
+        <!-- Set List Detail view -->
+        <div id="setlist-detail-view" class="view">
+            <div class="view-header">
+                <h2 id="setlist-name"></h2>
+                <button id="back-from-setlist" class="btn-secondary">Back</button>
+            </div>
+            <div class="setlist-actions">
+                <button id="record-set-btn" class="btn-primary">Record Set</button>
+                <button id="edit-order-btn" class="btn-secondary">Edit Order</button>
+                <button id="rename-setlist-btn" class="btn-secondary">Rename</button>
+                <button id="delete-setlist-btn" class="btn-danger">Delete Set List</button>
+            </div>
+            <div class="setlist-notes">
+                <label for="setlist-notes">Post-Set Notes</label>
+                <textarea id="setlist-notes" rows="4" placeholder="Add notes about this set..."></textarea>
+            </div>
+            <div class="setlist-jokes">
+                <h3>Jokes in this set</h3>
+                <ul id="setlist-jokes-list"></ul>
+            </div>
+        </div>
+
+        <!-- Create/Edit Set List view -->
+        <div id="create-setlist-view" class="view">
+            <div class="view-header">
+                <h2 id="create-setlist-title">Create Set List</h2>
+                <button id="cancel-create-setlist" class="btn-secondary">Cancel</button>
+            </div>
+            <form id="create-setlist-form">
+                <div class="form-group">
+                    <label for="setlist-name-input">Set List Name (1-50 chars)</label>
+                    <input type="text" id="setlist-name-input" maxlength="50" required>
+                </div>
+                <div class="joke-picker">
+                    <h3>Available Jokes</h3>
+                    <div id="available-jokes-list" class="joke-grid"></div>
+                    <h3>Selected Jokes (drag to reorder)</h3>
+                    <ul id="selected-jokes-list" class="sortable-list"></ul>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Save Set List</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Recordings view -->
+        <div id="recordings-view" class="view">
+            <div class="view-header">
+                <h2>Recordings</h2>
+            </div>
+            <div id="recordings-list" class="list"></div>
+        </div>
+
+        <!-- Recording Detail view -->
+        <div id="recording-detail-view" class="view">
+            <div class="view-header">
+                <h2 id="recording-name"></h2>
+                <button id="back-from-recording" class="btn-secondary">Back</button>
+            </div>
+            <div class="recording-player">
+                <audio id="recording-audio" controls></audio>
+                <div class="recording-info">
+                    <p>Duration: <span id="recording-duration"></span></p>
+                </div>
+            </div>
+            <div class="recording-notes">
+                <label for="recording-notes">Notes</label>
+                <textarea id="recording-notes" rows="4" placeholder="Add notes about this recording..."></textarea>
+            </div>
+            <div class="recording-actions">
+                <button id="export-recording-btn" class="btn-secondary">Export Audio</button>
+                <button id="delete-recording-btn" class="btn-danger">Delete Recording</button>
+            </div>
+        </div>
+
+        <!-- Recording interface view -->
+        <div id="record-set-view" class="view">
+            <div class="view-header">
+                <h2>Recording: <span id="record-setlist-name"></span></h2>
+                <button id="cancel-recording-btn" class="btn-secondary">Cancel</button>
+            </div>
+            <div class="recording-timer" id="recording-timer">00:00</div>
+            <div class="recording-controls">
+                <button id="start-record-btn" class="record-btn">Start</button>
+                <button id="pause-record-btn" class="record-btn" style="display:none;">Pause</button>
+                <button id="resume-record-btn" class="record-btn" style="display:none;">Resume</button>
+                <button id="stop-record-btn" class="record-btn stop" style="display:none;">Stop</button>
+            </div>
+            <div class="setlist-preview">
+                <h3>Set List Order</h3>
+                <ul id="recording-setlist-jokes"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
