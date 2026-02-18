@@ -1,0 +1,451 @@
+// !$*UTF8*$!
+{
+archiveVersion = 1;
+classes = {
+};
+objectVersion = 56;
+objects = {
+
+/* Begin PBXBuildFile section */
+25923430422B49D8B621991F /* ComedySetOrganizerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AE1AEC48A6D4005BBA19923 /* ComedySetOrganizerApp.swift */; };
+F301F842F24B457DB616FF41 /* CoreDataStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3242E624DCFA45A5A6F755D1 /* CoreDataStack.swift */; };
+516FCB940768424CB68CFCA3 /* Joke+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C7AF1BFCEDA4E1189C7917C /* Joke+Extensions.swift */; };
+E40A01E947BD4A57BE282AC7 /* SetList+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B1EE61DE484A079D37B0D7 /* SetList+Extensions.swift */; };
+8674586865D548A5951422DD /* Recording+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AD1B9BFD9F9424ABE7044A0 /* Recording+Extensions.swift */; };
+4FA9AD3968B741B9AC5B7E7C /* AudioRecorderManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD39CA73CFF04C0DAC710E45 /* AudioRecorderManager.swift */; };
+87EDEE81E5F646C1A7EED90B /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED2A39B7969A48F1A33756B4 /* HomeView.swift */; };
+041EFD79693A4826BC0AA580 /* JokesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFD2F5B726684D81B8D482E6 /* JokesView.swift */; };
+95C4DC9761C94415A21D2649 /* AddEditJokeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C90EAC878BED416AB988CB1B /* AddEditJokeView.swift */; };
+D38DFBE4BE984A29866EE095 /* JokeDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D9D7B06DA434C48B5A344CF /* JokeDetailView.swift */; };
+AF29CE76F546486F915F9961 /* CreateSetListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F33ABD2994940B8A0A0CC68 /* CreateSetListView.swift */; };
+06C373D82FE445A29B6D48CD /* SetListsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A53DBC83FBC466CB2B42446 /* SetListsView.swift */; };
+66AAD9B774A54EA7ADF3994C /* SetListDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7C1485C43C497DA0C2FF44 /* SetListDetailView.swift */; };
+0758207761544E2E9364D731 /* RecordSetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F22E4756D944CCA854D9DF6 /* RecordSetView.swift */; };
+4D7E5B2727994BD2B41D6D6C /* RecordingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D52E0F4E0404114BFCD81DC /* RecordingsView.swift */; };
+7165E8458BAC4BB981E99F72 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339F85D26F04B6C8C60CE90 /* EmptyStateView.swift */; };
+B7163BA285A74FD1AFF4D24A /* ComedySetOrganizer.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 96DDAC3C7F924EA29BE30CEE /* ComedySetOrganizer.xcdatamodeld */; };
+834E6B30004A4F8D8F8CE2F8 /* privacy-policy.html in Resources */ = {isa = PBXBuildFile; fileRef = 50EEC476A3944F52BF99E24B /* privacy-policy.html */; };
+A78AAE851AA54B97A29F26EB /* APP_STORE_METADATA.md in Resources */ = {isa = PBXBuildFile; fileRef = D23F3CE7D2AC4C4DAA04FDDF /* APP_STORE_METADATA.md */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+CFEB67CABFE34A04AAF511BD /* ComedySetOrganizer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ComedySetOrganizer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+6AE1AEC48A6D4005BBA19923 /* ComedySetOrganizerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComedySetOrganizerApp.swift; sourceTree = "<group>"; };
+00CC47C9B2744EC3A67CE6C7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+3242E624DCFA45A5A6F755D1 /* CoreDataStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataStack.swift; sourceTree = "<group>"; };
+3C7AF1BFCEDA4E1189C7917C /* Joke+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Joke+Extensions.swift"; sourceTree = "<group>"; };
+04B1EE61DE484A079D37B0D7 /* SetList+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SetList+Extensions.swift"; sourceTree = "<group>"; };
+6AD1B9BFD9F9424ABE7044A0 /* Recording+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Recording+Extensions.swift"; sourceTree = "<group>"; };
+DD39CA73CFF04C0DAC710E45 /* AudioRecorderManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorderManager.swift; sourceTree = "<group>"; };
+ED2A39B7969A48F1A33756B4 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+BFD2F5B726684D81B8D482E6 /* JokesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JokesView.swift; sourceTree = "<group>"; };
+C90EAC878BED416AB988CB1B /* AddEditJokeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddEditJokeView.swift; sourceTree = "<group>"; };
+2D9D7B06DA434C48B5A344CF /* JokeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JokeDetailView.swift; sourceTree = "<group>"; };
+7F33ABD2994940B8A0A0CC68 /* CreateSetListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateSetListView.swift; sourceTree = "<group>"; };
+7A53DBC83FBC466CB2B42446 /* SetListsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetListsView.swift; sourceTree = "<group>"; };
+BB7C1485C43C497DA0C2FF44 /* SetListDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetListDetailView.swift; sourceTree = "<group>"; };
+2F22E4756D944CCA854D9DF6 /* RecordSetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordSetView.swift; sourceTree = "<group>"; };
+9D52E0F4E0404114BFCD81DC /* RecordingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingsView.swift; sourceTree = "<group>"; };
+D339F85D26F04B6C8C60CE90 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
+50EEC476A3944F52BF99E24B /* privacy-policy.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "privacy-policy.html"; sourceTree = "<group>"; };
+D23F3CE7D2AC4C4DAA04FDDF /* APP_STORE_METADATA.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = APP_STORE_METADATA.md; sourceTree = "<group>"; };
+01DE0F0FE5754FB382BF3856 /* ComedySetOrganizer.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = ComedySetOrganizer.xcdatamodel; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+9D840AB0034D42DE9540095F /* Frameworks */ = {
+isa = PBXFrameworksBuildPhase;
+buildActionMask = 2147483647;
+files = (
+);
+runOnlyForDeploymentPostprocessing = 0;
+};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+4C224E72A36B47FBB1E0D379 = {
+isa = PBXGroup;
+children = (
+DFCBDF5BBFB64D7D91856830 /* ComedySetOrganizer */,
+345FD8871044462B8A5BADED /* Products */,
+);
+sourceTree = "<group>";
+};
+DFCBDF5BBFB64D7D91856830 /* ComedySetOrganizer */ = {
+isa = PBXGroup;
+children = (
+6AE1AEC48A6D4005BBA19923 /* ComedySetOrganizerApp.swift */,
+557F8D79CE144EA984743467 /* Models */,
+095A83E597C14B1BBE30DA69 /* Views */,
+56515E3DFA5D479B9420AFE6 /* Managers */,
+BF2704591C384C88B77C6391 /* Resources */,
+96DDAC3C7F924EA29BE30CEE /* ComedySetOrganizer.xcdatamodeld */,
+00CC47C9B2744EC3A67CE6C7 /* Info.plist */,
+);
+path = ComedySetOrganizer;
+sourceTree = "<group>";
+};
+345FD8871044462B8A5BADED /* Products */ = {
+isa = PBXGroup;
+children = (
+CFEB67CABFE34A04AAF511BD /* ComedySetOrganizer.app */,
+);
+name = Products;
+sourceTree = "<group>";
+};
+557F8D79CE144EA984743467 /* Models */ = {
+isa = PBXGroup;
+children = (
+3242E624DCFA45A5A6F755D1 /* CoreDataStack.swift */,
+3C7AF1BFCEDA4E1189C7917C /* Joke+Extensions.swift */,
+04B1EE61DE484A079D37B0D7 /* SetList+Extensions.swift */,
+6AD1B9BFD9F9424ABE7044A0 /* Recording+Extensions.swift */,
+);
+path = Models;
+sourceTree = "<group>";
+};
+095A83E597C14B1BBE30DA69 /* Views */ = {
+isa = PBXGroup;
+children = (
+ED2A39B7969A48F1A33756B4 /* HomeView.swift */,
+BFD2F5B726684D81B8D482E6 /* JokesView.swift */,
+C90EAC878BED416AB988CB1B /* AddEditJokeView.swift */,
+2D9D7B06DA434C48B5A344CF /* JokeDetailView.swift */,
+7F33ABD2994940B8A0A0CC68 /* CreateSetListView.swift */,
+7A53DBC83FBC466CB2B42446 /* SetListsView.swift */,
+BB7C1485C43C497DA0C2FF44 /* SetListDetailView.swift */,
+2F22E4756D944CCA854D9DF6 /* RecordSetView.swift */,
+9D52E0F4E0404114BFCD81DC /* RecordingsView.swift */,
+D339F85D26F04B6C8C60CE90 /* EmptyStateView.swift */,
+);
+path = Views;
+sourceTree = "<group>";
+};
+56515E3DFA5D479B9420AFE6 /* Managers */ = {
+isa = PBXGroup;
+children = (
+DD39CA73CFF04C0DAC710E45 /* AudioRecorderManager.swift */,
+);
+path = Managers;
+sourceTree = "<group>";
+};
+BF2704591C384C88B77C6391 /* Resources */ = {
+isa = PBXGroup;
+children = (
+50EEC476A3944F52BF99E24B /* privacy-policy.html */,
+D23F3CE7D2AC4C4DAA04FDDF /* APP_STORE_METADATA.md */,
+);
+path = Resources;
+sourceTree = "<group>";
+};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+6D47B2B0C74543CE9A4B5F06 /* ComedySetOrganizer */ = {
+isa = PBXNativeTarget;
+buildConfigurationList = 6CA5AEE9D58F4DC8A60EA205 /* Build configuration list for PBXNativeTarget "ComedySetOrganizer" */;
+buildPhases = (
+80B8C08D3C4D48CC8B649001 /* Sources */,
+9D840AB0034D42DE9540095F /* Frameworks */,
+5CB49942C42B497D8436E7F7 /* Resources */,
+);
+buildRules = (
+);
+dependencies = (
+);
+name = ComedySetOrganizer;
+productName = ComedySetOrganizer;
+productReference = CFEB67CABFE34A04AAF511BD /* ComedySetOrganizer.app */;
+productType = "com.apple.product-type.application";
+};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+36D85C7E9D15493DBB44F812 /* Project object */ = {
+isa = PBXProject;
+attributes = {
+BuildIndependentTargetsInParallel = 1;
+LastSwiftUpdateCheck = 1500;
+LastUpgradeCheck = 1500;
+TargetAttributes = {
+6D47B2B0C74543CE9A4B5F06 = {
+CreatedOnToolsVersion = 15.0;
+};
+};
+};
+buildConfigurationList = 82F395E9EBE349AC9453B402 /* Build configuration list for PBXProject "ComedySetOrganizer" */;
+compatibilityVersion = "Xcode 14.0";
+developmentRegion = en;
+hasScannedForEncodings = 0;
+knownRegions = (
+en,
+Base,
+);
+mainGroup = 4C224E72A36B47FBB1E0D379;
+productRefGroup = 345FD8871044462B8A5BADED /* Products */;
+projectDirPath = "";
+projectRoot = "";
+targets = (
+6D47B2B0C74543CE9A4B5F06 /* ComedySetOrganizer */,
+);
+};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+5CB49942C42B497D8436E7F7 /* Resources */ = {
+isa = PBXResourcesBuildPhase;
+buildActionMask = 2147483647;
+files = (
+834E6B30004A4F8D8F8CE2F8 /* privacy-policy.html in Resources */,
+A78AAE851AA54B97A29F26EB /* APP_STORE_METADATA.md in Resources */,
+);
+runOnlyForDeploymentPostprocessing = 0;
+};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+80B8C08D3C4D48CC8B649001 /* Sources */ = {
+isa = PBXSourcesBuildPhase;
+buildActionMask = 2147483647;
+files = (
+25923430422B49D8B621991F /* ComedySetOrganizerApp.swift in Sources */,
+F301F842F24B457DB616FF41 /* CoreDataStack.swift in Sources */,
+516FCB940768424CB68CFCA3 /* Joke+Extensions.swift in Sources */,
+E40A01E947BD4A57BE282AC7 /* SetList+Extensions.swift in Sources */,
+8674586865D548A5951422DD /* Recording+Extensions.swift in Sources */,
+4FA9AD3968B741B9AC5B7E7C /* AudioRecorderManager.swift in Sources */,
+87EDEE81E5F646C1A7EED90B /* HomeView.swift in Sources */,
+041EFD79693A4826BC0AA580 /* JokesView.swift in Sources */,
+95C4DC9761C94415A21D2649 /* AddEditJokeView.swift in Sources */,
+D38DFBE4BE984A29866EE095 /* JokeDetailView.swift in Sources */,
+AF29CE76F546486F915F9961 /* CreateSetListView.swift in Sources */,
+06C373D82FE445A29B6D48CD /* SetListsView.swift in Sources */,
+66AAD9B774A54EA7ADF3994C /* SetListDetailView.swift in Sources */,
+0758207761544E2E9364D731 /* RecordSetView.swift in Sources */,
+4D7E5B2727994BD2B41D6D6C /* RecordingsView.swift in Sources */,
+7165E8458BAC4BB981E99F72 /* EmptyStateView.swift in Sources */,
+B7163BA285A74FD1AFF4D24A /* ComedySetOrganizer.xcdatamodeld in Sources */,
+);
+runOnlyForDeploymentPostprocessing = 0;
+};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+9CF3BA8609AB4791A6DA3BCE /* Debug */ = {
+isa = XCBuildConfiguration;
+buildSettings = {
+ALWAYS_SEARCH_USER_PATHS = NO;
+ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+CLANG_ANALYZER_NONNULL = YES;
+CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+CLANG_ENABLE_MODULES = YES;
+CLANG_ENABLE_OBJC_ARC = YES;
+CLANG_ENABLE_OBJC_WEAK = YES;
+CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+CLANG_WARN_BOOL_CONVERSION = YES;
+CLANG_WARN_COMMA = YES;
+CLANG_WARN_CONSTANT_CONVERSION = YES;
+CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+CLANG_WARN_EMPTY_BODY = YES;
+CLANG_WARN_ENUM_CONVERSION = YES;
+CLANG_WARN_INFINITE_RECURSION = YES;
+CLANG_WARN_INT_CONVERSION = YES;
+CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+CLANG_WARN_STRICT_PROTOTYPES = YES;
+CLANG_WARN_SUSPICIOUS_MOVE = YES;
+CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+CLANG_WARN_UNREACHABLE_CODE = YES;
+CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+COPY_PHASE_STRIP = NO;
+DEBUG_INFORMATION_FORMAT = dwarf;
+ENABLE_STRICT_OBJC_MSGSEND = YES;
+ENABLE_TESTABILITY = YES;
+ENABLE_USER_SCRIPT_SANDBOXING = YES;
+GCC_C_LANGUAGE_STANDARD = gnu17;
+GCC_DYNAMIC_NO_PIC = NO;
+GCC_NO_COMMON_BLOCKS = YES;
+GCC_OPTIMIZATION_LEVEL = 0;
+GCC_PREPROCESSOR_DEFINITIONS = (
+"DEBUG=1",
+"$(inherited)",
+);
+GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+GCC_WARN_UNDECLARED_SELECTOR = YES;
+GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+GCC_WARN_UNUSED_FUNCTION = YES;
+GCC_WARN_UNUSED_VARIABLE = YES;
+IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+MTL_FAST_MATH = YES;
+ONLY_ACTIVE_ARCH = YES;
+SDKROOT = iphoneos;
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+};
+name = Debug;
+};
+08FDB7AD93914FADAC9A8AAD /* Release */ = {
+isa = XCBuildConfiguration;
+buildSettings = {
+ALWAYS_SEARCH_USER_PATHS = NO;
+ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+CLANG_ANALYZER_NONNULL = YES;
+CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+CLANG_ENABLE_MODULES = YES;
+CLANG_ENABLE_OBJC_ARC = YES;
+CLANG_ENABLE_OBJC_WEAK = YES;
+CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+CLANG_WARN_BOOL_CONVERSION = YES;
+CLANG_WARN_COMMA = YES;
+CLANG_WARN_CONSTANT_CONVERSION = YES;
+CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+CLANG_WARN_EMPTY_BODY = YES;
+CLANG_WARN_ENUM_CONVERSION = YES;
+CLANG_WARN_INFINITE_RECURSION = YES;
+CLANG_WARN_INT_CONVERSION = YES;
+CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+CLANG_WARN_STRICT_PROTOTYPES = YES;
+CLANG_WARN_SUSPICIOUS_MOVE = YES;
+CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+CLANG_WARN_UNREACHABLE_CODE = YES;
+CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+COPY_PHASE_STRIP = NO;
+DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+ENABLE_NS_ASSERTIONS = NO;
+ENABLE_STRICT_OBJC_MSGSEND = YES;
+ENABLE_USER_SCRIPT_SANDBOXING = YES;
+GCC_C_LANGUAGE_STANDARD = gnu17;
+GCC_NO_COMMON_BLOCKS = YES;
+GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+GCC_WARN_UNDECLARED_SELECTOR = YES;
+GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+GCC_WARN_UNUSED_FUNCTION = YES;
+GCC_WARN_UNUSED_VARIABLE = YES;
+IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+MTL_ENABLE_DEBUG_INFO = NO;
+MTL_FAST_MATH = YES;
+SDKROOT = iphoneos;
+SWIFT_COMPILATION_MODE = wholemodule;
+VALIDATE_PRODUCT = YES;
+};
+name = Release;
+};
+D3E24822B4F64B23B4C05367 /* Debug */ = {
+isa = XCBuildConfiguration;
+buildSettings = {
+ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+CODE_SIGN_STYLE = Automatic;
+CURRENT_PROJECT_VERSION = 1;
+DEVELOPMENT_TEAM = "";
+ENABLE_PREVIEWS = YES;
+GENERATE_INFOPLIST_FILE = NO;
+INFOPLIST_FILE = ComedySetOrganizer/Info.plist;
+INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+LD_RUNPATH_SEARCH_PATHS = (
+"$(inherited)",
+"@executable_path/Frameworks",
+);
+MARKETING_VERSION = 1.0;
+PRODUCT_BUNDLE_IDENTIFIER = com.example.ComedySetOrganizer;
+PRODUCT_NAME = "$(TARGET_NAME)";
+SWIFT_EMIT_LOC_STRINGS = YES;
+SWIFT_VERSION = 5.0;
+TARGETED_DEVICE_FAMILY = "1,2";
+};
+name = Debug;
+};
+6F8628B5C2C04489A13C2A1C /* Release */ = {
+isa = XCBuildConfiguration;
+buildSettings = {
+ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+CODE_SIGN_STYLE = Automatic;
+CURRENT_PROJECT_VERSION = 1;
+DEVELOPMENT_TEAM = "";
+ENABLE_PREVIEWS = YES;
+GENERATE_INFOPLIST_FILE = NO;
+INFOPLIST_FILE = ComedySetOrganizer/Info.plist;
+INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+LD_RUNPATH_SEARCH_PATHS = (
+"$(inherited)",
+"@executable_path/Frameworks",
+);
+MARKETING_VERSION = 1.0;
+PRODUCT_BUNDLE_IDENTIFIER = com.example.ComedySetOrganizer;
+PRODUCT_NAME = "$(TARGET_NAME)";
+SWIFT_EMIT_LOC_STRINGS = YES;
+SWIFT_VERSION = 5.0;
+TARGETED_DEVICE_FAMILY = "1,2";
+};
+name = Release;
+};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+82F395E9EBE349AC9453B402 /* Build configuration list for PBXProject "ComedySetOrganizer" */ = {
+isa = XCConfigurationList;
+buildConfigurations = (
+9CF3BA8609AB4791A6DA3BCE /* Debug */,
+08FDB7AD93914FADAC9A8AAD /* Release */,
+);
+defaultConfigurationIsVisible = 0;
+defaultConfigurationName = Release;
+};
+6CA5AEE9D58F4DC8A60EA205 /* Build configuration list for PBXNativeTarget "ComedySetOrganizer" */ = {
+isa = XCConfigurationList;
+buildConfigurations = (
+D3E24822B4F64B23B4C05367 /* Debug */,
+6F8628B5C2C04489A13C2A1C /* Release */,
+);
+defaultConfigurationIsVisible = 0;
+defaultConfigurationName = Release;
+};
+/* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+96DDAC3C7F924EA29BE30CEE /* ComedySetOrganizer.xcdatamodeld */ = {
+isa = XCVersionGroup;
+children = (
+01DE0F0FE5754FB382BF3856 /* ComedySetOrganizer.xcdatamodel */,
+);
+currentVersion = 01DE0F0FE5754FB382BF3856 /* ComedySetOrganizer.xcdatamodel */;
+path = ComedySetOrganizer.xcdatamodeld;
+sourceTree = "<group>";
+versionGroupType = wrapper.xcdatamodel;
+};
+/* End XCVersionGroup section */
+};
+rootObject = 36D85C7E9D15493DBB44F812 /* Project object */;
+}
+
