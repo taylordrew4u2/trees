@@ -10,7 +10,21 @@
     <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
 </head>
 <body>
-    <div id="app">
+    <!-- Password Gate -->
+    <div id="password-gate">
+        <div class="password-card">
+            <div class="password-icon">🎤</div>
+            <h1>Comedy Set Organizer</h1>
+            <p>Enter password to continue</p>
+            <form id="password-form">
+                <input type="password" id="password-input" placeholder="Password" autocomplete="current-password" autofocus>
+                <button type="submit" class="btn-primary">Enter</button>
+            </form>
+            <p id="password-error" class="password-error" style="display:none;">Incorrect password. Try again.</p>
+        </div>
+    </div>
+
+    <div id="app" style="display:none;">
         <header>
             <h1>Comedy Set Organizer</h1>
             <nav>
