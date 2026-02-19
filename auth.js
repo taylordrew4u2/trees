@@ -249,12 +249,14 @@ function initAuthGate() {
 
         try {
             await loginUser(username, password);
-            // Success → hide gate, show app
+            // Success → hide gate, show app, initialize
             gate.style.animation = 'authFadeOut 0.3s forwards';
             setTimeout(() => {
                 gate.style.display = 'none';
                 appEl.style.display = '';
                 updateAuthUI();
+                // Boot the app now that the user is authenticated
+                if (typeof window.initApp === 'function') window.initApp();
             }, 300);
         } catch (err) {
             loginError.textContent   = err.message;

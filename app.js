@@ -486,6 +486,14 @@ function navigateTo(view, params = {}) {
 
 function renderView() {
     const main = document.getElementById('main-content');
+    const templatesContainer = document.getElementById('templates');
+
+    // Restore any previously stripped IDs so we can find the template
+    templatesContainer.querySelectorAll('[data-tmpl-id]').forEach(el => {
+        el.id = el.dataset.tmplId;
+        delete el.dataset.tmplId;
+    });
+
     const template = document.getElementById(`${currentView}-view`);
     if (!template) {
         console.error('View not found:', currentView);
@@ -498,6 +506,12 @@ function renderView() {
     content.style.display = 'block';
     main.innerHTML = '';
     main.appendChild(content);
+
+    // Strip IDs from templates container so getElementById finds the visible clones
+    templatesContainer.querySelectorAll('[id]').forEach(el => {
+        el.dataset.tmplId = el.id;
+        el.removeAttribute('id');
+    });
 
     // Update active nav button
     document.querySelectorAll('nav button').forEach(btn => {
@@ -2051,26 +2065,11 @@ function initChatPanel() {
 }
 
 
-// ---------- Bootstrap ----------
-window.addEventListener('load', async () => {
-    initStorage();
-    await openDB();
+// ── App initialization (called after auth succeeds) ──
+function initApp() {
+    if (window._appInitialized) return;
+    window._appInitialized = true;
 
-    // ── Auth gate: block app until user logs in ──
-    const launchEl = document.getElementById('launch-screen');
-    const authed = initAuthGate();
-
-    // Hide launch screen after animation, then show auth gate if needed
-    setTimeout(() => {
-        if (launchEl) launchEl.style.display = 'none';
-        const gate = document.getElementById('auth-gate');
-        if (!authed && gate) gate.style.display = 'flex';
-    }, 1400);
-
-    // If not authenticated, don't init the rest yet — auth gate will reload on success
-    if (!authed) return;
-
-    // ── Authenticated: boot the app ──
     initMenuControls();
     initSettingsModal();
     initFabMenu();
@@ -2099,4 +2098,30 @@ window.addEventListener('load', async () => {
         currentParams = i ? { id: i } : {};
         renderView();
     });
+}
+
+// Expose globally so auth.js can call it after login
+window.initApp = initApp;
+
+// ---------- Bootstrap ----------
+window.addEventListener('load', async () => {
+    initStorage();
+    await openDB();
+
+    // ── Auth gate: block app until user logs in ──
+    const launchEl = document.getElementById('launch-screen');
+    const authed = initAuthGate();
+
+    // Hide launch screen after animation, then show auth gate if needed
+    setTimeout(() => {
+        if (launchEl) launchEl.style.display = 'none';
+        const gate = document.getElementById('auth-gate');
+        if (!authed && gate) gate.style.display = 'flex';
+    }, 1400);
+
+    // If not authenticated, wait for auth gate login to call initApp()
+    if (!authed) return;
+
+    // ── Authenticated: boot the app ──
+    initApp();
 });
