@@ -64,6 +64,10 @@ body {
   overflow-x: hidden;
   min-height: 100dvh;
   image-rendering: pixelated;
+  /* Safe area for notched phones */
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 h1, h2, .side-menu-brand, #page-title {
   font-family: var(--font-display);
@@ -139,7 +143,7 @@ input, textarea, select { font-family: inherit; }
 .menu-overlay.open { opacity: 1; visibility: visible; }
 .side-menu {
   position: fixed; top: 0; right: 0; bottom: 0;
-  width: 300px; z-index: 950;
+  width: 300px; max-width: 85vw; z-index: 950;
   background: var(--bg-primary);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
@@ -148,6 +152,8 @@ input, textarea, select { font-family: inherit; }
   transition: transform 0.3s steps(6);
   display: flex; flex-direction: column;
   box-shadow: -6px 0 0 var(--border);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .side-menu.open { transform: translateX(0); }
 .side-menu-header {
@@ -216,7 +222,7 @@ input, textarea, select { font-family: inherit; }
 #top-bar {
   position: sticky; top: 0; z-index: 100;
   display: flex; align-items: center; gap: 12px;
-  padding: 16px 20px;
+  padding: 16px 20px; padding-top: calc(16px + env(safe-area-inset-top));
   background: var(--bg-primary);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
@@ -237,13 +243,13 @@ input, textarea, select { font-family: inherit; }
   display: flex; flex-direction: column;
   max-width: 720px; margin: 0 auto;
   min-height: 100dvh;
-  padding-bottom: 100px;
+  padding-bottom: calc(100px + env(safe-area-inset-bottom));
 }
-#main-content { flex: 1; padding: 0 20px; }
+#main-content { flex: 1; padding: 0 20px; overflow-x: hidden; }
 
 /* ──── FLOATING ACTION BUTTON ──── */
 .fab {
-  position: fixed; bottom: 28px; right: 28px; z-index: 200;
+  position: fixed; bottom: calc(28px + env(safe-area-inset-bottom)); left: 28px; z-index: 200;
   width: 56px; height: 56px;
   border-radius: 0; border: 3px solid var(--border);
   background: var(--purple);
@@ -271,9 +277,9 @@ input, textarea, select { font-family: inherit; }
 
 /* ──── FAB MENU (radial popup) ──── */
 .fab-menu {
-  position: fixed; bottom: 96px; right: 28px; z-index: 199;
+  position: fixed; bottom: calc(96px + env(safe-area-inset-bottom)); left: 28px; z-index: 199;
   display: flex; flex-direction: column-reverse; gap: 12px;
-  align-items: flex-end;
+  align-items: flex-start;
   opacity: 0; visibility: hidden; transform: translateY(10px);
   transition: all 0.15s steps(3);
 }
@@ -833,18 +839,82 @@ input, textarea, select { font-family: inherit; }
 .folder-list-item .folder-count { color: var(--text-muted); font-size: 0.82rem; }
 .folder-actions { display: flex; gap: 6px; }
 
-/* ──── ACCESSIBILITY ──── */
-button, .list-item { min-height: 44px; }
+/* ──── ACCESSIBILITY & TOUCH TARGETS ──── */
+button, .list-item, a { min-height: 44px; }
 :focus-visible { outline: 3px solid var(--purple); outline-offset: 2px; }
+/* Prevent iOS zoom on input focus */
+input, select, textarea { font-size: max(0.7rem, 16px); }
+@media (min-width: 481px) {
+  input, select, textarea { font-size: 0.7rem; }
+}
+/* Tap highlight for mobile */
+@media (hover: none) {
+  button, .list-item, .home-card, .fab-menu-item, .folder-chip, .jb-folder-chip, .ai-style-chip {
+    -webkit-tap-highlight-color: rgba(139,92,246,0.15);
+  }
+  .home-card:hover, .list-item:hover, .fab:hover {
+    transform: none;
+    box-shadow: var(--shadow-md);
+  }
+  .home-card:active { transform: translate(2px, 2px); box-shadow: none; }
+  .fab:active { transform: translate(2px, 2px); box-shadow: none; }
+}
 
 /* ──── RESPONSIVE ──── */
-@media (max-width: 480px) {
-  .home-grid { grid-template-columns: 1fr; }
+
+/* Small phones (iPhone SE, Galaxy S8, etc.) */
+@media (max-width: 374px) {
+  body { font-size: 9px; }
+  #main-content { padding: 0 10px; }
+  .home-grid { grid-template-columns: 1fr; gap: 10px; }
+  .home-card { padding: 16px 14px; min-height: 90px; }
+  .home-card .hc-icon { font-size: 1.4rem; }
+  .home-card .hc-title { font-size: 0.65rem; }
+  .view-header { gap: 6px; padding: 14px 0 8px; }
+  .view-header h2 { font-size: 1rem; }
+  .view-header-actions { gap: 4px; }
+  .view-header-actions .btn { padding: 4px 8px; font-size: 0.55rem; }
   .form-row { flex-direction: column; }
   .ai-style-grid { grid-template-columns: repeat(2, 1fr); }
-  .view-header { gap: 8px; }
-  .view-header h2 { font-size: 1.2rem; }
+  .modal { max-height: 92dvh; }
+  .modal-body { padding: 14px; }
+  .modal-header { padding: 14px 14px 10px; }
+  .perm-item { grid-template-columns: 1fr; gap: 6px; }
+  .perm-status { justify-self: start; }
+  .fab { width: 48px; height: 48px; left: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); }
+  .fab-glass { width: 44px; height: 44px; }
+  .fab-core { width: 38px; height: 38px; }
+  .fab-menu { left: 16px; bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .fab-menu-item { padding: 8px 12px; font-size: 0.55rem; }
+  .clown-chat-btn { width: 50px; height: 50px; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); }
+  .notepad-textarea { min-height: 220px; }
+  .recording-timer { font-size: 2.5rem; }
+  .jb-add-row { flex-direction: column; align-items: stretch; }
+  .btn { padding: 8px 14px; min-height: 44px; }
+  .btn-sm { padding: 6px 10px; min-height: 36px; }
 }
+
+/* Standard phones */
+@media (max-width: 480px) {
+  #main-content { padding: 0 14px; }
+  .home-grid { grid-template-columns: 1fr; gap: 12px; }
+  .home-card { padding: 18px 16px; min-height: 100px; }
+  .form-row { flex-direction: column; }
+  .ai-style-grid { grid-template-columns: repeat(2, 1fr); }
+  .view-header { gap: 8px; padding: 16px 0 10px; }
+  .view-header h2 { font-size: 1.15rem; }
+  .view-header-actions { gap: 6px; width: 100%; justify-content: flex-end; }
+  .modal { max-height: 90dvh; }
+  .modal-body { padding: 16px; }
+  .perm-item { grid-template-columns: 1fr auto; gap: 8px; }
+  .perm-item button { grid-column: 1 / -1; justify-self: start; }
+  .recording-timer { font-size: 3rem; }
+  .recording-controls { gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .setlist-actions { gap: 6px; }
+  .jb-add-row { flex-wrap: wrap; }
+}
+
+/* Tablet-ish+ */
 @media (min-width: 481px) {
   .home-grid { grid-template-columns: repeat(2, 1fr); }
 }
@@ -855,6 +925,16 @@ button, .list-item { min-height: 44px; }
     align-self: center;
   }
   .modal-overlay { align-items: center; }
+}
+
+/* Landscape phones — reduce vertical padding */
+@media (max-height: 500px) and (orientation: landscape) {
+  .home-card { padding: 12px 14px; min-height: 70px; gap: 4px; }
+  .home-grid { gap: 8px; }
+  .notepad-textarea { min-height: 150px; }
+  .recording-timer { font-size: 2rem; margin: 12px 0; }
+  .modal { max-height: 95dvh; }
+  .chat-messages { max-height: 180px; min-height: 80px; }
 }
 
 /* ──── SCROLLBAR ──── */
@@ -987,7 +1067,7 @@ button, .list-item { min-height: 44px; }
 /* ----------  Floating Clown Chat Button  ---------- */
 elevenlabs-convai {
   position: fixed !important;
-  bottom: 24px !important;
+  bottom: calc(24px + env(safe-area-inset-bottom)) !important;
   right: 24px !important;
   z-index: 9990 !important;
   opacity: 0 !important;
@@ -999,7 +1079,7 @@ elevenlabs-convai.voice-active {
 }
 .clown-chat-btn {
   position: fixed;
-  bottom: 24px;
+  bottom: calc(24px + env(safe-area-inset-bottom));
   right: 24px;
   z-index: 9999;
   width: 60px;
@@ -1248,11 +1328,22 @@ elevenlabs-convai.voice-active {
   padding: 8px 12px;
 }
 
-@media (max-width: 400px) {
+@media (max-width: 480px) {
   .chat-panel {
     right: 8px;
     left: 8px;
     width: auto;
-    bottom: 90px;
+    bottom: calc(90px + env(safe-area-inset-bottom));
+    max-height: calc(100dvh - 120px);
+  }
+  .chat-messages {
+    max-height: 280px;
+  }
+  .chat-msg {
+    max-width: 92%;
+  }
+  .chat-input-bar input {
+    font-size: 0.6rem;
+    padding: 10px;
   }
 }
