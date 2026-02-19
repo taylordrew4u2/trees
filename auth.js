@@ -11,11 +11,15 @@
 const userDB = new Dexie('UserAppDB');
 
 userDB.version(1).stores({
-    // ++id  = auto-incremented primary key
-    // &username = unique index on username
     users:     '++id, &username',
-    // ownerId index lets us efficiently query files belonging to a user
     userFiles: '++id, ownerId'
+});
+
+// v2 adds a dedicated jokes table
+userDB.version(2).stores({
+    users:     '++id, &username',
+    userFiles: '++id, ownerId',
+    jokes:     '++id, ownerId, folder'
 });
 
 // ─── Password Hashing Helpers ───────────────────────────────────────────────
@@ -395,4 +399,100 @@ function initUserFilesForm() {
             alert(err.message);
         }
     });
+}
+
+// ─── Jokebook CRUD ──────────────────────────────────────────────────────────
+// All joke operations are scoped to the logged-in user via ownerId.
+
+async function getUsernameById(userId) {
+    const user = await userDB.users.get(userId);
+    return user ? user.username : null;
+}
+
+async function addJokeToJokebook(jokeText, folder = 'bitbuddy') {
+    const ownerId = requireAuth();
+    const now = new Date().toISOString();
+    const id = await userDB.jokes.add({
+        ownerId,
+        folder:    (folder || 'bitbuddy').trim(),
+        text:      jokeText,
+        createdAt: now,
+        updatedAt: now
+    });
+    return id;
+}
+
+async function getJokesByFolder(userId, folder) {
+    if (!userId) throw new Error('User ID required.');
+    if (folder) {
+        return userDB.jokes
+            .where('ownerId').equals(userId)
+            .filter(j => j.folder === folder)
+            .toArray();
+    }
+    return userDB.jokes.where('ownerId').equals(userId).toArray();
+}
+
+async function getAllJokebookFolders(userId) {
+    if (!userId) throw new Error('User ID required.');
+    const jokes = await userDB.jokes.where('ownerId').equals(userId).toArray();
+    const folderSet = new Set(jokes.map(j => j.folder || 'bitbuddy'));
+    folderSet.add('bitbuddy');
+    return Array.from(folderSet).sort();
+}
+
+async function updateJokebookJoke(jokeId, newText) {
+    const ownerId = requireAuth();
+    const joke = await userDB.jokes.get(jokeId);
+    if (!joke || joke.ownerId !== ownerId) throw new Error('Joke not found or access denied.');
+    await userDB.jokes.update(jokeId, {
+        text:      newText,
+        updatedAt: new Date().toISOString()
+    });
+}
+
+async function deleteJokebookJoke(jokeId) {
+    const ownerId = requireAuth();
+    const joke = await userDB.jokes.get(jokeId);
+    if (!joke || joke.ownerId !== ownerId) throw new Error('Joke not found or access denied.');
+    await userDB.jokes.delete(jokeId);
+}
+
+async function moveJokeToFolder(jokeId, newFolder) {
+    const ownerId = requireAuth();
+    const joke = await userDB.jokes.get(jokeId);
+    if (!joke || joke.ownerId !== ownerId) throw new Error('Joke not found or access denied.');
+    await userDB.jokes.update(jokeId, {
+        folder:    (newFolder || 'bitbuddy').trim(),
+        updatedAt: new Date().toISOString()
+    });
+}
+
+// ─── AI ↔ Jokebook Command Parser ──────────────────────────────────────────
+
+function parseJokebookCommand(utterance) {
+    const lower = (utterance || '').toLowerCase();
+    const addMatch = /(add|save|put|store)\b/.test(lower) &&
+                     /(joke\s?book|jokebook|my book|my jokes)/.test(lower);
+    if (!addMatch) return null;
+
+    let folder = 'bitbuddy';
+    const folderMatch = lower.match(/(?:to|in)\s+(?:the\s+)?(\w[\w\s]*?)\s+folder/);
+    if (folderMatch) {
+        folder = folderMatch[1].trim();
+    } else if (/bitbuddy/.test(lower)) {
+        folder = 'bitbuddy';
+    }
+    return { folder };
+}
+
+async function addJokeToFolder(jokeText, folderName = 'bitbuddy') {
+    const uid = getCurrentUserId();
+    if (!uid) return { success: false, message: 'Not logged in.' };
+    try {
+        await addJokeToJokebook(jokeText, folderName);
+        return { success: true, message: `Joke saved to "${folderName}" folder!` };
+    } catch (err) {
+        return { success: false, message: err.message };
+    }
 }

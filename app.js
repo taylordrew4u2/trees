@@ -542,12 +542,25 @@ function renderView() {
 // ---------- View Renderers ----------
 
 function renderHome() {
+    // Personalize jokebook button
+    const jbLabel = document.getElementById('jokebook-btn-label');
+    const jbBtn   = document.getElementById('jokebook-home-btn');
+    const uid = getCurrentUserId();
+    if (uid && jbLabel) {
+        const uname = getCurrentUsername();
+        jbLabel.textContent = uname ? `${uname}'s jokebook` : 'my jokebook';
+        if (jbBtn) jbBtn.style.display = '';
+    } else if (jbBtn) {
+        jbBtn.style.display = 'none';
+    }
+
     document.querySelectorAll('.home-card, .home-button').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const view = e.currentTarget.dataset.view;
             const action = e.currentTarget.dataset.action;
             if (view) navigateTo(view);
-            if (action) handleFabAction(action);
+            if (action === 'open-jokebook') openJokebookModal();
+            else if (action) handleFabAction(action);
         });
     });
 }
@@ -1430,11 +1443,16 @@ function renderAiResults(jokes, container, autoAdd) {
                 ${punch ? `<p><strong>Punchline:</strong> ${punch}</p>` : ''}
                 <div class="ai-result-actions">
                     <button class="btn btn-primary btn-sm" data-add="${idx}">Add to Jokes</button>
+                    <button class="btn btn-secondary btn-sm" data-jb="${idx}">📖 Jokebook</button>
                     <button class="btn btn-secondary btn-sm" data-edit="${idx}">Open Editor</button>
                 </div>
             </div>
         `;
     }).join('');
+
+    // Track last generated joke for AI voice command parsing
+    const lastJoke = jokes[jokes.length - 1];
+    _lastGeneratedJoke = lastJoke ? [lastJoke.setup, lastJoke.punchline].filter(Boolean).join(' — ') : '';
 
     const addToJokes = (joke) => {
         addJoke({
@@ -1452,6 +1470,11 @@ function renderAiResults(jokes, container, autoAdd) {
 
     if (autoAdd) {
         jokes.forEach(addToJokes);
+        // Also add to jokebook (IndexedDB) 
+        jokes.forEach(j => {
+            const fullText = [j.setup, j.punchline].filter(Boolean).join(' — ');
+            if (fullText) addJokeToFolder(fullText, 'bitbuddy');
+        });
         container.insertAdjacentHTML('afterbegin', '<p class="api-status connected">Agent mode: jokes added to your jokebook.</p>');
     }
 
@@ -1460,6 +1483,20 @@ function renderAiResults(jokes, container, autoAdd) {
             const joke = jokes[parseInt(btn.dataset.add, 10)];
             addToJokes(joke);
             navigateTo('jokes');
+        });
+    });
+    // Jokebook quick-add buttons
+    container.querySelectorAll('[data-jb]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const joke = jokes[parseInt(btn.dataset.jb, 10)];
+            const fullText = [joke.setup, joke.punchline].filter(Boolean).join(' — ');
+            const result = await addJokeToFolder(fullText, 'bitbuddy');
+            if (result.success) {
+                btn.textContent = '✓ Saved';
+                btn.disabled = true;
+            } else {
+                alert(result.message);
+            }
         });
     });
     container.querySelectorAll('[data-edit]').forEach(btn => {
@@ -1492,6 +1529,176 @@ function generateFallbackJokes(topic, style) {
         { title: `${base} #2`, setup: `The wild thing about ${topic} is...`, punchline: `...it makes me look organized by comparison.`, category: style, tags: [style, topic] },
         { title: `${base} #3`, setup: `I tried to fix my ${topic} problem...`, punchline: `Now it has my number.`, category: style, tags: [style, topic] },
     ];
+}
+
+// ---------- Jokebook Modal ----------
+let _lastGeneratedJoke = '';  // Track last AI-generated joke for "add to jokebook" commands
+
+function openJokebookModal() {
+    const modal = document.getElementById('jokebook-modal');
+    if (modal) {
+        modal.classList.add('open');
+        refreshJokebook();
+    }
+}
+
+async function refreshJokebook() {
+    const uid = getCurrentUserId();
+    if (!uid) return;
+
+    // Update title
+    const titleEl = document.getElementById('jokebook-modal-title');
+    const uname = getCurrentUsername();
+    if (titleEl) titleEl.textContent = uname ? `${uname}'s Jokebook` : 'My Jokebook';
+
+    // Render folder bar
+    const folderBar = document.getElementById('jb-folder-bar');
+    const targetSelect = document.getElementById('jb-target-folder');
+    const folders = await getAllJokebookFolders(uid);
+
+    if (folderBar) {
+        const activeFolder = folderBar.dataset.active || '';
+        folderBar.innerHTML =
+            `<button class="jb-folder-chip ${!activeFolder ? 'active' : ''}" data-folder="">All</button>` +
+            folders.map(f =>
+                `<button class="jb-folder-chip ${activeFolder === f ? 'active' : ''}" data-folder="${escapeHTML(f)}">${escapeHTML(f)}</button>`
+            ).join('');
+
+        folderBar.querySelectorAll('.jb-folder-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                folderBar.dataset.active = chip.dataset.folder;
+                refreshJokebook();
+            });
+        });
+    }
+
+    // Populate target folder dropdown
+    if (targetSelect) {
+        targetSelect.innerHTML = folders.map(f =>
+            `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`
+        ).join('');
+    }
+
+    // Render jokes
+    const activeFolder = folderBar?.dataset.active || '';
+    const jokes = await getJokesByFolder(uid, activeFolder || null);
+    const listEl = document.getElementById('jb-jokes-list');
+    if (!listEl) return;
+
+    if (jokes.length === 0) {
+        listEl.innerHTML = '<div class="jb-empty">No jokes here yet. Add one above!</div>';
+        return;
+    }
+
+    // Sort newest first
+    jokes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    listEl.innerHTML = jokes.map(j => `
+        <div class="jb-joke-card" data-id="${j.id}">
+            <div class="jb-joke-text">${escapeHTML(j.text)}</div>
+            <div class="jb-joke-meta">
+                <span class="jb-joke-folder-tag">${escapeHTML(j.folder)}</span>
+                <span class="jb-joke-date">${new Date(j.createdAt).toLocaleDateString()}</span>
+                <div class="jb-joke-actions">
+                    <button class="btn btn-ghost btn-sm jb-edit-btn" data-id="${j.id}" title="Edit">✏️</button>
+                    <button class="btn btn-ghost btn-sm jb-move-btn" data-id="${j.id}" title="Move">📁</button>
+                    <button class="btn btn-ghost btn-sm jb-delete-btn" data-id="${j.id}" title="Delete">🗑️</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+    // Edit buttons
+    listEl.querySelectorAll('.jb-edit-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const id = Number(btn.dataset.id);
+            const joke = await userDB.jokes.get(id);
+            if (!joke) return;
+            const newText = prompt('Edit joke:', joke.text);
+            if (newText !== null && newText.trim()) {
+                await updateJokebookJoke(id, newText.trim());
+                refreshJokebook();
+            }
+        });
+    });
+
+    // Move buttons
+    listEl.querySelectorAll('.jb-move-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const id = Number(btn.dataset.id);
+            const folders = await getAllJokebookFolders(uid);
+            const dest = prompt(`Move to folder:\n(${folders.join(', ')})\nOr type a new name:`);
+            if (dest !== null && dest.trim()) {
+                await moveJokeToFolder(id, dest.trim());
+                refreshJokebook();
+            }
+        });
+    });
+
+    // Delete buttons
+    listEl.querySelectorAll('.jb-delete-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const id = Number(btn.dataset.id);
+            if (confirm('Delete this joke?')) {
+                await deleteJokebookJoke(id);
+                refreshJokebook();
+            }
+        });
+    });
+}
+
+function initJokebookModal() {
+    const modal = document.getElementById('jokebook-modal');
+    const closeBtn = document.getElementById('close-jokebook-modal');
+    const addBtn = document.getElementById('jb-add-joke-btn');
+    const createFolderBtn = document.getElementById('jb-create-folder-btn');
+
+    if (!modal) return;
+
+    closeBtn?.addEventListener('click', () => closeModal('jokebook-modal'));
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal('jokebook-modal');
+    });
+
+    // Add joke
+    if (addBtn) {
+        addBtn.addEventListener('click', async () => {
+            const textarea = document.getElementById('jb-new-joke');
+            const folderSelect = document.getElementById('jb-target-folder');
+            const text = textarea?.value.trim();
+            if (!text) { alert('Write a joke first!'); return; }
+            const folder = folderSelect?.value || 'bitbuddy';
+            try {
+                await addJokeToJokebook(text, folder);
+                textarea.value = '';
+                refreshJokebook();
+            } catch (err) {
+                alert(err.message);
+            }
+        });
+    }
+
+    // Create new folder inline
+    if (createFolderBtn) {
+        createFolderBtn.addEventListener('click', async () => {
+            const input = document.getElementById('jb-new-folder-name');
+            const name = input?.value.trim();
+            if (!name) return;
+            // Adding a dummy joke forces the folder to exist, but simpler:
+            // just add to the select and clear input
+            const select = document.getElementById('jb-target-folder');
+            // Check if already exists
+            const existing = Array.from(select?.options || []).some(o => o.value.toLowerCase() === name.toLowerCase());
+            if (!existing) {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name;
+                select.appendChild(opt);
+            }
+            select.value = name;
+            input.value = '';
+        });
+    }
 }
 
 function safeJsonParse(text) {
@@ -1541,6 +1748,18 @@ function initVoiceModal() {
         recognition.onresult = (event) => {
             const transcript = Array.from(event.results).map(r => r[0].transcript).join(' ');
             textArea.value = transcript;
+
+            // Check if user said "add that to my jokebook" etc.
+            if (event.results[0]?.isFinal) {
+                const cmd = parseJokebookCommand(transcript);
+                if (cmd && _lastGeneratedJoke) {
+                    addJokeToFolder(_lastGeneratedJoke, cmd.folder).then(result => {
+                        if (result.success) {
+                            if (status) status.textContent = `✓ Saved to ${cmd.folder}!`;
+                        }
+                    });
+                }
+            }
         };
         recognition.onend = () => {
             listening = false;
@@ -1870,6 +2089,7 @@ window.addEventListener('load', async () => {
     initFabMenu();
     initAiModal();
     initVoiceModal();
+    initJokebookModal();
     initUserFilesForm();
     renderUserFilesPanel();
 

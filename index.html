@@ -6,7 +6,7 @@
     <title>The Bit Binder</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <!-- Dexie.js – IndexedDB wrapper -->
     <script src="https://unpkg.com/dexie@3/dist/dexie.js"></script>
@@ -369,6 +369,11 @@
                     <span class="hc-title">AI Generate</span>
                     <span class="hc-sub">Create jokes with AI</span>
                 </div>
+                <div class="home-card home-card--jokebook" id="jokebook-home-btn" data-action="open-jokebook">
+                    <span class="hc-icon">📖</span>
+                    <span class="hc-title" id="jokebook-btn-label">my jokebook</span>
+                    <span class="hc-sub">Personal joke folders</span>
+                </div>
             </div>
         </div>
 
@@ -652,6 +657,34 @@
             </form>
         </div>
 
+    </div>
+
+    <!-- Jokebook Modal -->
+    <div id="jokebook-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>📖 <span id="jokebook-modal-title">My Jokebook</span></h3>
+                <button class="modal-close" id="close-jokebook-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Folder tabs -->
+                <div class="jb-folder-bar" id="jb-folder-bar"></div>
+
+                <!-- Add joke form -->
+                <div class="jb-add-form">
+                    <textarea id="jb-new-joke" class="jb-textarea" rows="3" placeholder="Write a joke..."></textarea>
+                    <div class="jb-add-row">
+                        <select id="jb-target-folder" class="jb-folder-select"></select>
+                        <input type="text" id="jb-new-folder-name" class="jb-new-folder-input" placeholder="New folder…">
+                        <button id="jb-create-folder-btn" class="btn btn-secondary btn-sm">+</button>
+                        <button id="jb-add-joke-btn" class="btn btn-primary btn-sm">Add Joke</button>
+                    </div>
+                </div>
+
+                <!-- Jokes list -->
+                <div id="jb-jokes-list" class="jb-jokes-list"></div>
+            </div>
+        </div>
     </div>
 
     <!-- ElevenLabs ConvAI Chat Widget -->
