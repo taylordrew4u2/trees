@@ -635,8 +635,26 @@
     <!-- ElevenLabs ConvAI Chat Widget -->
     <elevenlabs-convai agent-id="agent_7401ka31ry6qftr9ab89em3339w9"></elevenlabs-convai>
 
-    <!-- Floating Clown Overlay (visual only — clicks pass through to widget) -->
-    <div id="clown-chat-btn" class="clown-chat-btn" aria-hidden="true">
+    <!-- Text Chat Panel -->
+    <div id="chat-panel" class="chat-panel">
+        <div class="chat-panel-header">
+            <span class="chat-panel-title">🤡 BitBuddy</span>
+            <div class="chat-panel-actions">
+                <button id="chat-voice-btn" class="btn btn-ghost btn-sm" title="Switch to voice">🎤</button>
+                <button id="chat-close-btn" class="btn btn-ghost btn-sm">&times;</button>
+            </div>
+        </div>
+        <div id="chat-messages" class="chat-messages">
+            <div class="chat-msg chat-msg--bot">Hey! I'm BitBuddy 🤡 Type or tap 🎤 to talk.</div>
+        </div>
+        <form id="chat-form" class="chat-input-bar">
+            <input type="text" id="chat-input" placeholder="Type a message..." autocomplete="off">
+            <button type="submit" class="btn btn-primary btn-sm">Send</button>
+        </form>
+    </div>
+
+    <!-- Floating Clown Button (opens chat panel) -->
+    <button id="clown-chat-btn" class="clown-chat-btn" aria-label="Open chat">
       <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
         <circle cx="50" cy="52" r="30"/>
         <rect x="30" y="18" width="40" height="8" rx="3"/>
@@ -653,7 +671,7 @@
         <circle cx="30" cy="32" r="5"/>
         <circle cx="70" cy="32" r="5"/>
       </svg>
-    </div>
+    </button>
 
     <!-- Auth scripts (must load before app.js) -->
     <script src="auth.js"></script>

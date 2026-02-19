@@ -1992,6 +1992,119 @@ function escapeHTML(str) {
         .replace(/'/g, '&#39;');
 }
 
+// ---------- Chat Panel ----------
+function initChatPanel() {
+    const clownBtn  = document.getElementById('clown-chat-btn');
+    const panel     = document.getElementById('chat-panel');
+    const closeBtn  = document.getElementById('chat-close-btn');
+    const voiceBtn  = document.getElementById('chat-voice-btn');
+    const form      = document.getElementById('chat-form');
+    const input     = document.getElementById('chat-input');
+    const messages  = document.getElementById('chat-messages');
+    const widget    = document.querySelector('elevenlabs-convai');
+
+    if (!clownBtn || !panel) return;
+
+    let chatHistory = [
+        { role: 'system', content: 'You are BitBuddy, a funny clown comedy assistant. You help comedians write jokes, brainstorm material, and give feedback on bits. Keep answers concise and witty. Use humor when appropriate.' }
+    ];
+
+    // Toggle chat panel
+    clownBtn.addEventListener('click', () => {
+        const isOpen = panel.classList.contains('open');
+        if (isOpen) {
+            panel.classList.remove('open');
+        } else {
+            panel.classList.add('open');
+            if (widget) widget.classList.remove('voice-active');
+            input.focus();
+        }
+    });
+
+    closeBtn.addEventListener('click', () => {
+        panel.classList.remove('open');
+    });
+
+    // Voice button — activate ElevenLabs widget
+    voiceBtn.addEventListener('click', () => {
+        if (widget) {
+            widget.classList.toggle('voice-active');
+            // Try to click the widget's internal button
+            const shadowBtn = widget.shadowRoot?.querySelector('button');
+            if (shadowBtn) shadowBtn.click();
+        }
+    });
+
+    function addMessage(text, role) {
+        const div = document.createElement('div');
+        div.className = `chat-msg chat-msg--${role}`;
+        div.textContent = text;
+        messages.appendChild(div);
+        messages.scrollTop = messages.scrollHeight;
+        return div;
+    }
+
+    // Send message
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const text = input.value.trim();
+        if (!text) return;
+
+        addMessage(text, 'user');
+        input.value = '';
+
+        chatHistory.push({ role: 'user', content: text });
+
+        const typingEl = addMessage('thinking...', 'typing');
+
+        const key = getApiKey();
+        let reply = '';
+        if (key) {
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${key}`,
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-4o-mini',
+                        messages: chatHistory,
+                        temperature: 0.9,
+                        max_tokens: 300,
+                    }),
+                });
+                if (response.ok) {
+                    const json = await response.json();
+                    reply = json.choices?.[0]?.message?.content || '';
+                }
+            } catch (err) {
+                console.error('Chat error', err);
+            }
+        }
+
+        if (!reply) {
+            // Fallback responses when no API key
+            const fallbacks = [
+                "Add your OpenAI key in Settings to unlock my full brain! 🧠",
+                "I'm funnier with an API key... hint hint! 🤡",
+                "My comedy circuits need an API key to boot up! ⚡",
+                "Set up an OpenAI key in ⚙️ Settings and I'll be your writing partner!",
+            ];
+            reply = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+        }
+
+        typingEl.remove();
+        addMessage(reply, 'bot');
+        chatHistory.push({ role: 'assistant', content: reply });
+
+        // Keep history reasonable
+        if (chatHistory.length > 20) {
+            chatHistory = [chatHistory[0], ...chatHistory.slice(-10)];
+        }
+    });
+}
+
 
 // ---------- Bootstrap ----------
 window.addEventListener('load', async () => {
@@ -2021,6 +2134,7 @@ window.addEventListener('load', async () => {
     initJokebookModal();
     initUserFilesForm();
     renderUserFilesPanel();
+    initChatPanel();
 
     // Parse initial hash
     const hash = window.location.hash.slice(1) || 'notepad';
