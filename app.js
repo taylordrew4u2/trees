@@ -498,7 +498,7 @@ function renderView() {
     const template = document.getElementById(`${currentView}-view`);
     if (!template) {
         console.error('View not found:', currentView);
-        navigateTo('home');
+        navigateTo('notepad');
         return;
     }
 
@@ -570,7 +570,6 @@ function renderJokes() {
     const container = document.getElementById('jokes-list');
     const searchInput = document.getElementById('joke-search');
     const sortSelect = document.getElementById('joke-sort');
-    const statusFilter = document.getElementById('joke-filter-status');
     const addBtn = document.getElementById('add-joke-btn');
     const manageFoldersBtn = document.getElementById('manage-folders-btn');
     const autoOrganizeBtn = document.getElementById('auto-organize-btn');
@@ -597,20 +596,16 @@ function renderJokes() {
 
     function renderJokesList() {
         const search = (searchInput.value || '').toLowerCase();
-        const status = statusFilter.value;
-        const category = '';
         const sortBy = sortSelect.value;
 
         let filtered = jokes.filter(j => {
             const matchSearch = !search ||
                 j.title.toLowerCase().includes(search) ||
+                (j.text && j.text.toLowerCase().includes(search)) ||
                 (j.setup && j.setup.toLowerCase().includes(search)) ||
-                (j.punchline && j.punchline.toLowerCase().includes(search)) ||
                 (j.body && j.body.toLowerCase().includes(search));
-            const matchStatus = !status || j.status === status;
-            const matchCategory = !category || (j.category && j.category.toLowerCase().includes(category));
             const matchFolder = !activeFolderId || j.folderId === activeFolderId;
-            return matchSearch && matchStatus && matchCategory && matchFolder;
+            return matchSearch && matchFolder;
         });
 
         // Sort
@@ -618,29 +613,23 @@ function renderJokes() {
             switch (sortBy) {
                 case 'oldest':  return new Date(a.createdAt) - new Date(b.createdAt);
                 case 'title':   return (a.title || '').localeCompare(b.title || '');
-                case 'rating':  return (b.rating || 0) - (a.rating || 0);
                 case 'newest':
                 default:        return new Date(b.createdAt) - new Date(a.createdAt);
             }
         });
 
         if (filtered.length === 0) {
-            container.innerHTML = `<p class="empty">${search || status || category ? 'No jokes match your filters.' : 'No jokes yet. Add your first one!'}</p>`;
+            container.innerHTML = `<p class="empty">${search ? 'No jokes match your search.' : 'No jokes yet. Add your first one!'}</p>`;
             return;
         }
 
-        const statusLabels = { idea: '💡 Idea', draft: '✏️ Draft', 'stage-ready': '🎤 Stage Ready', retired: '📦 Retired' };
-
         container.innerHTML = filtered.map(j => {
-            const stars = j.rating ? '★'.repeat(j.rating) + '☆'.repeat(5 - j.rating) : '';
-            const statusBadge = j.status ? `<span class="joke-status joke-status--${j.status}">${statusLabels[j.status] || j.status}</span>` : '';
-            const preview = j.setup || j.body || '';
+            const preview = j.text || j.setup || j.body || '';
             return `
             <div class="list-item" data-id="${j.id}">
-                <h3>${escapeHTML(j.title)}${statusBadge}</h3>
+                <h3>${escapeHTML(j.title)}</h3>
                 <p>${escapeHTML(preview.slice(0, 120))}${preview.length > 120 ? '…' : ''}</p>
-                ${stars ? `<span class="joke-rating-stars">${stars}</span>` : ''}
-                <small>Updated: ${new Date(j.updatedAt).toLocaleDateString()}${j.category ? ' • ' + escapeHTML(j.category) : ''}</small>
+                <small>Updated: ${new Date(j.updatedAt).toLocaleDateString()}</small>
             </div>
         `;
         }).join('');
@@ -654,7 +643,6 @@ function renderJokes() {
     renderFolderBar();
     searchInput.addEventListener('input', renderJokesList);
     sortSelect.addEventListener('change', renderJokesList);
-    statusFilter.addEventListener('change', renderJokesList);
     addBtn.addEventListener('click', () => navigateTo('joke-form'));
     if (manageFoldersBtn) manageFoldersBtn.addEventListener('click', () => navigateTo('joke-folders'));
     if (autoOrganizeBtn) autoOrganizeBtn.addEventListener('click', autoOrganizeJokes);
@@ -664,39 +652,10 @@ function renderJokeForm(id) {
     const isEdit = !!id;
     const titleEl       = document.getElementById('joke-form-title');
     const titleInput    = document.getElementById('joke-title');
-    const setupInput    = document.getElementById('joke-setup');
-    const punchInput    = document.getElementById('joke-punchline');
-    const bodyInput     = document.getElementById('joke-body');
-    const statusSelect  = document.getElementById('joke-status');
-    const folderSelect  = document.getElementById('joke-folder');
-    const categoryInput = document.getElementById('joke-category');
-    const tagsInput     = document.getElementById('joke-tags');
-    const ratingEl      = document.getElementById('joke-rating');
+    const textInput     = document.getElementById('joke-text');
     const cancelBtn     = document.getElementById('cancel-joke-btn');
     const deleteBtn     = document.getElementById('delete-joke-btn');
     const form          = document.getElementById('joke-form');
-
-    let currentRating = 0;
-
-    function renderFolderOptions(selectedId = '') {
-        if (!folderSelect) return;
-        const folders = getFolders();
-        folderSelect.innerHTML = ['<option value="">No folder</option>']
-            .concat(folders.map(f => `<option value="${f.id}">${escapeHTML(f.name)}</option>`))
-            .join('');
-        folderSelect.value = selectedId || '';
-    }
-
-    // Star rating interaction
-    function updateStars(value) {
-        currentRating = value;
-        ratingEl.querySelectorAll('.star').forEach(s => {
-            s.classList.toggle('active', parseInt(s.dataset.value) <= value);
-        });
-    }
-    ratingEl.querySelectorAll('.star').forEach(s => {
-        s.addEventListener('click', () => updateStars(parseInt(s.dataset.value)));
-    });
 
     // Pre-fill if editing or if there's notepad text for export
     if (isEdit) {
@@ -704,22 +663,14 @@ function renderJokeForm(id) {
         if (!joke) { navigateTo('jokes'); return; }
         titleEl.textContent     = 'Edit Joke';
         titleInput.value        = joke.title || '';
-        setupInput.value        = joke.setup || '';
-        punchInput.value        = joke.punchline || '';
-        bodyInput.value         = joke.body || '';
-        statusSelect.value      = joke.status || 'idea';
-        renderFolderOptions(joke.folderId || '');
-        categoryInput.value     = joke.category || '';
-        tagsInput.value         = (joke.tags || []).join(', ');
-        updateStars(joke.rating || 0);
+        textInput.value         = joke.text || joke.setup || joke.body || '';
         deleteBtn.style.display = 'inline-block';
     } else {
         titleEl.textContent     = 'Add Joke';
-        renderFolderOptions('');
         // Check for notepad export text
         const exportText = sessionStorage.getItem('notepad_export_text');
         if (exportText) {
-            setupInput.value = exportText;
+            textInput.value = exportText;
             sessionStorage.removeItem('notepad_export_text');
         }
         deleteBtn.style.display = 'none';
@@ -730,20 +681,13 @@ function renderJokeForm(id) {
     form.addEventListener('submit', e => {
         e.preventDefault();
         const title = titleInput.value.trim();
-        if (!title || title.length > 20) {
-            alert('Title must be 1-20 characters');
+        if (!title || title.length > 30) {
+            alert('Title must be 1-30 characters');
             return;
         }
         const jokeData = {
             title,
-            setup: setupInput.value,
-            punchline: punchInput.value,
-            body: bodyInput.value,
-            status: statusSelect.value,
-            folderId: folderSelect ? folderSelect.value : '',
-            category: categoryInput.value.trim(),
-            tags: tagsInput.value.split(',').map(t => t.trim()).filter(Boolean),
-            rating: currentRating,
+            text: textInput.value,
         };
         if (isEdit) {
             updateJoke(id, jokeData);
@@ -1434,13 +1378,11 @@ function renderAiResults(jokes, container, autoAdd) {
 
     container.innerHTML = jokes.map((j, idx) => {
         const title = escapeHTML(j.title || `Joke ${idx + 1}`);
-        const setup = escapeHTML(j.setup || '');
-        const punch = escapeHTML(j.punchline || '');
+        const jokeText = escapeHTML(j.text || j.setup || '');
         return `
             <div class="ai-result-card">
                 <h4>${title}</h4>
-                <p>${setup}</p>
-                ${punch ? `<p><strong>Punchline:</strong> ${punch}</p>` : ''}
+                <p>${jokeText}</p>
                 <div class="ai-result-actions">
                     <button class="btn btn-primary btn-sm" data-add="${idx}">Add to Jokes</button>
                     <button class="btn btn-secondary btn-sm" data-jb="${idx}">📖 Jokebook</button>
@@ -1452,19 +1394,13 @@ function renderAiResults(jokes, container, autoAdd) {
 
     // Track last generated joke for AI voice command parsing
     const lastJoke = jokes[jokes.length - 1];
-    _lastGeneratedJoke = lastJoke ? [lastJoke.setup, lastJoke.punchline].filter(Boolean).join(' — ') : '';
+    _lastGeneratedJoke = lastJoke ? (lastJoke.text || [lastJoke.setup, lastJoke.punchline].filter(Boolean).join(' — ')) : '';
 
     const addToJokes = (joke) => {
+        const fullText = joke.text || [joke.setup, joke.punchline].filter(Boolean).join('\n\n');
         addJoke({
             title: joke.title || 'New Joke',
-            setup: joke.setup || '',
-            punchline: joke.punchline || '',
-            body: joke.body || '',
-            status: 'idea',
-            category: joke.category || '',
-            tags: joke.tags || [],
-            rating: 0,
-            folderId: '',
+            text: fullText,
         });
     };
 
@@ -1472,7 +1408,7 @@ function renderAiResults(jokes, container, autoAdd) {
         jokes.forEach(addToJokes);
         // Also add to jokebook (IndexedDB) 
         jokes.forEach(j => {
-            const fullText = [j.setup, j.punchline].filter(Boolean).join(' — ');
+            const fullText = j.text || [j.setup, j.punchline].filter(Boolean).join(' — ');
             if (fullText) addJokeToFolder(fullText, 'bitbuddy');
         });
         container.insertAdjacentHTML('afterbegin', '<p class="api-status connected">Agent mode: jokes added to your jokebook.</p>');
@@ -1489,7 +1425,7 @@ function renderAiResults(jokes, container, autoAdd) {
     container.querySelectorAll('[data-jb]').forEach(btn => {
         btn.addEventListener('click', async () => {
             const joke = jokes[parseInt(btn.dataset.jb, 10)];
-            const fullText = [joke.setup, joke.punchline].filter(Boolean).join(' — ');
+            const fullText = joke.text || [joke.setup, joke.punchline].filter(Boolean).join(' — ');
             const result = await addJokeToFolder(fullText, 'bitbuddy');
             if (result.success) {
                 btn.textContent = '✓ Saved';
@@ -1502,7 +1438,7 @@ function renderAiResults(jokes, container, autoAdd) {
     container.querySelectorAll('[data-edit]').forEach(btn => {
         btn.addEventListener('click', () => {
             const joke = jokes[parseInt(btn.dataset.edit, 10)];
-            sessionStorage.setItem('notepad_export_text', joke.setup || joke.body || '');
+            sessionStorage.setItem('notepad_export_text', joke.text || joke.setup || joke.body || '');
             navigateTo('joke-form');
         });
     });
@@ -1512,7 +1448,7 @@ async function generateAiJokes(topic, style) {
     const key = getApiKey();
     if (!key) return generateFallbackJokes(topic, style);
     try {
-        const prompt = `You are a comedy writing assistant. Return a JSON array of 3 jokes. Each object should include title, setup, punchline, category, and tags (array). Topic: "${topic}". Style: "${style}".`;
+        const prompt = `You are a comedy writing assistant. Return a JSON array of 3 jokes. Each object should have "title" (short name) and "text" (the full joke). Topic: "${topic}". Style: "${style}".`;
         const content = await callOpenAI(prompt, key);
         const data = safeJsonParse(content);
         if (Array.isArray(data)) return data;
@@ -1525,9 +1461,9 @@ async function generateAiJokes(topic, style) {
 function generateFallbackJokes(topic, style) {
     const base = `(${style}) ${topic}`;
     return [
-        { title: `${base} #1`, setup: `So I've been thinking about ${topic}...`, punchline: `Turns out ${topic} thinks about me too.`, category: style, tags: [style, topic] },
-        { title: `${base} #2`, setup: `The wild thing about ${topic} is...`, punchline: `...it makes me look organized by comparison.`, category: style, tags: [style, topic] },
-        { title: `${base} #3`, setup: `I tried to fix my ${topic} problem...`, punchline: `Now it has my number.`, category: style, tags: [style, topic] },
+        { title: `${base} #1`, text: `So I've been thinking about ${topic}... Turns out ${topic} thinks about me too.` },
+        { title: `${base} #2`, text: `The wild thing about ${topic} is... it makes me look organized by comparison.` },
+        { title: `${base} #3`, text: `I tried to fix my ${topic} problem... Now it has my number.` },
     ];
 }
 
@@ -1788,14 +1724,7 @@ function initVoiceModal() {
         if (!text) { alert('Say something first.'); return; }
         addJoke({
             title: text.slice(0, 30),
-            setup: text,
-            punchline: '',
-            body: '',
-            status: 'idea',
-            category: '',
-            tags: [],
-            rating: 0,
-            folderId: '',
+            text: text,
         });
         closeModal('voice-modal');
         navigateTo('jokes');
@@ -1817,7 +1746,7 @@ async function autoOrganizeJokes() {
     const key = getApiKey();
     if (key) {
         try {
-            const payload = jokes.map(j => ({ id: j.id, title: j.title, setup: j.setup, category: j.category || '' }));
+            const payload = jokes.map(j => ({ id: j.id, title: j.title, text: j.text || j.setup || '' }));
             const prompt = `You are organizing jokes into folders. Return JSON array of objects with id and folder. Use 3-6 folder names. Data: ${JSON.stringify(payload)}`;
             const content = await callOpenAI(prompt, key);
             const data = safeJsonParse(content);
@@ -1835,7 +1764,7 @@ async function autoOrganizeJokes() {
     // Fallback heuristic
     const assignments = jokes.map(j => ({
         id: j.id,
-        folder: guessFolderFromText(`${j.title} ${j.setup} ${j.category}`),
+        folder: guessFolderFromText(`${j.title} ${j.text || j.setup || ''}`),
     }));
     applyFolderAssignments(assignments);
     alert('Auto-organized with built-in rules.');
@@ -2094,9 +2023,9 @@ window.addEventListener('load', async () => {
     renderUserFilesPanel();
 
     // Parse initial hash
-    const hash = window.location.hash.slice(1) || 'home';
+    const hash = window.location.hash.slice(1) || 'notepad';
     const [view, id] = hash.split('/');
-    navigateTo(view || 'home', id ? { id } : {});
+    navigateTo(view || 'notepad', id ? { id } : {});
 
     // Top-level nav buttons
     document.querySelectorAll('nav button[data-view]').forEach(btn => {
@@ -2105,9 +2034,9 @@ window.addEventListener('load', async () => {
 
     // Browser back/forward support
     window.addEventListener('popstate', () => {
-        const h = window.location.hash.slice(1) || 'home';
+        const h = window.location.hash.slice(1) || 'notepad';
         const [v, i] = h.split('/');
-        currentView   = v || 'home';
+        currentView   = v || 'notepad';
         currentParams = i ? { id: i } : {};
         renderView();
     });

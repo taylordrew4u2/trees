@@ -398,14 +398,6 @@
                     <option value="newest">Newest</option>
                     <option value="oldest">Oldest</option>
                     <option value="title">Title A–Z</option>
-                    <option value="rating">Top Rated</option>
-                </select>
-                <select id="joke-filter-status">
-                    <option value="">All Status</option>
-                    <option value="idea">💡 Idea</option>
-                    <option value="draft">✏️ Draft</option>
-                    <option value="stage-ready">🎤 Stage Ready</option>
-                    <option value="retired">📦 Retired</option>
                 </select>
             </div>
             <div id="jokes-list" class="list"></div>
@@ -418,60 +410,13 @@
                 <button id="cancel-joke-btn" class="btn btn-ghost">Cancel</button>
             </div>
             <form id="joke-form">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="joke-title">Title</label>
-                        <input type="text" id="joke-title" maxlength="30" required placeholder="Joke title...">
-                    </div>
-                    <div class="form-group">
-                        <label for="joke-status">Status</label>
-                        <select id="joke-status">
-                            <option value="idea">💡 Idea</option>
-                            <option value="draft">✏️ Draft</option>
-                            <option value="stage-ready">🎤 Stage Ready</option>
-                            <option value="retired">📦 Retired</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="joke-folder">Folder</label>
-                        <select id="joke-folder">
-                            <option value="">No folder</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Rating</label>
-                        <div class="star-rating" id="joke-rating">
-                            <button type="button" class="star" data-value="1">★</button>
-                            <button type="button" class="star" data-value="2">★</button>
-                            <button type="button" class="star" data-value="3">★</button>
-                            <button type="button" class="star" data-value="4">★</button>
-                            <button type="button" class="star" data-value="5">★</button>
-                        </div>
-                    </div>
+                <div class="form-group">
+                    <label for="joke-title">Title</label>
+                    <input type="text" id="joke-title" maxlength="30" required placeholder="Joke title...">
                 </div>
                 <div class="form-group">
-                    <label for="joke-setup">Setup</label>
-                    <textarea id="joke-setup" rows="3" placeholder="The setup..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="joke-punchline">Punchline</label>
-                    <textarea id="joke-punchline" rows="2" placeholder="The punchline..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="joke-body">Notes / Tags</label>
-                    <textarea id="joke-body" rows="3" placeholder="Extra notes, tags, variations..."></textarea>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="joke-category">Category</label>
-                        <input type="text" id="joke-category" placeholder="e.g. Observational">
-                    </div>
-                    <div class="form-group">
-                        <label for="joke-tags">Tags (comma sep.)</label>
-                        <input type="text" id="joke-tags" placeholder="e.g. dark, callback">
-                    </div>
+                    <label for="joke-text">Full Joke</label>
+                    <textarea id="joke-text" rows="8" placeholder="Write your joke here..."></textarea>
                 </div>
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Save Joke</button>
