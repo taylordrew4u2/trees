@@ -921,11 +921,20 @@ elevenlabs-convai {
   padding: 10px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+.clown-chat-btn {
+  animation: clownFloat 3s ease-in-out infinite;
+}
+@keyframes clownFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
 .clown-chat-btn:hover {
+  animation: none;
   transform: scale(1.1);
   box-shadow: 0 6px 22px rgba(214,40,40,0.6);
 }
 .clown-chat-btn:active {
+  animation: none;
   transform: scale(0.95);
 }
 .clown-chat-btn svg {
