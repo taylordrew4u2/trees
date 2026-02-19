@@ -4,19 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
     <title>The Bit Binder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <!-- ElevenLabs Conversational AI Widget -->
     <elevenlabs-convai agent-id="agent_7401ka31ry6qftr9ab89em3339w9"></elevenlabs-convai>
     <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
 </head>
 <body>
     <!-- Launch Screen -->
     <div id="launch-screen">
-        <div class="launch-content">
-            <div class="launch-icon">🎤</div>
-            <h1 class="launch-title">The Bit Binder</h1>
-            <p class="launch-subtitle">Your comedy companion</p>
-        </div>
+        <div class="launch-icon">🎤</div>
+        <h1 class="launch-title">The Bit Binder</h1>
+        <p class="launch-subtitle">Your comedy companion</p>
     </div>
 
     <!-- Password Gate -->
@@ -27,167 +27,243 @@
             <p>Enter password to continue</p>
             <form id="password-form">
                 <input type="password" id="password-input" placeholder="Password" autocomplete="current-password">
-                <button type="submit" class="btn-primary">Enter</button>
+                <button type="submit" class="btn btn-primary" style="width:100%;">Enter</button>
             </form>
             <p id="password-error" class="password-error" style="display:none;">Incorrect password. Try again.</p>
         </div>
     </div>
 
-    <!-- Side Menu Overlay -->
-    <div id="side-menu-overlay" class="side-menu-overlay"></div>
-
-    <!-- Glassmorphic Side Menu -->
-    <div id="side-menu" class="side-menu">
+    <!-- Side Menu -->
+    <div id="menu-overlay" class="menu-overlay"></div>
+    <nav id="side-menu" class="side-menu">
         <div class="side-menu-header">
             <h2 class="side-menu-brand">BitBinder</h2>
-            <span class="side-menu-version">v8.0</span>
+            <span class="side-menu-version">v8</span>
             <button id="close-menu-btn" class="close-menu-btn" aria-label="Close menu">&times;</button>
         </div>
         <div class="side-menu-items">
+            <button class="side-menu-item" data-view="home" data-color="blue">
+                <span class="smi-icon">🏠</span>
+                <span class="smi-label">Home</span>
+            </button>
             <button class="side-menu-item" data-view="notepad" data-color="blue">
                 <span class="smi-icon">✏️</span>
                 <span class="smi-label">Notepad</span>
-                <span class="smi-desc">Quick joke writing</span>
             </button>
-            <button class="side-menu-item" data-view="jokes" data-color="orange">
+            <button class="side-menu-item" data-view="jokes" data-color="amber">
                 <span class="smi-icon">😄</span>
                 <span class="smi-label">Jokes</span>
-                <span class="smi-desc">Joke library &amp; folders</span>
             </button>
             <button class="side-menu-item" data-view="setlists" data-color="purple">
                 <span class="smi-icon">📋</span>
                 <span class="smi-label">Set Lists</span>
-                <span class="smi-desc">Curate comedy sets</span>
             </button>
             <button class="side-menu-item" data-view="recordings" data-color="red">
                 <span class="smi-icon">🎙️</span>
                 <span class="smi-label">Recordings</span>
-                <span class="smi-desc">Audio recordings</span>
             </button>
-            <button class="side-menu-item" data-view="notebook" data-color="brown">
+            <button class="side-menu-item" data-view="notebook" data-color="teal">
                 <span class="smi-icon">📓</span>
                 <span class="smi-label">Notebook</span>
-                <span class="smi-desc">Photo-based notebook</span>
+            </button>
+        </div>
+        <div class="side-menu-footer">
+            <button class="side-menu-item" id="open-settings-btn">
+                <span class="smi-icon">⚙️</span>
+                <span class="smi-label">Settings</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main App -->
+    <div id="app">
+        <header id="top-bar">
+            <button id="menu-btn" aria-label="Open menu">☰</button>
+            <h1 id="page-title">The Bit Binder</h1>
+        </header>
+        <main id="main-content"></main>
+
+        <!-- Floating Action Button -->
+        <button id="fab" class="fab" aria-label="Quick actions">+</button>
+        <!-- FAB Menu -->
+        <div id="fab-menu" class="fab-menu">
+            <button class="fab-menu-item" data-action="add-joke">
+                <span class="fmi-icon">✍️</span> Write Joke
+            </button>
+            <button class="fab-menu-item" data-action="ai-generate">
+                <span class="fmi-icon">✨</span> AI Generate
+            </button>
+            <button class="fab-menu-item" data-action="voice-joke">
+                <span class="fmi-icon">🎤</span> Voice to Joke
+            </button>
+            <button class="fab-menu-item" data-action="quick-note">
+                <span class="fmi-icon">📝</span> Quick Note
             </button>
         </div>
     </div>
 
-    <div id="app" style="display:none;">
-        <header>
-            <h1>The Bit Binder</h1>
-            <nav>
-                <button data-view="notepad">Notepad</button>
-                <button data-view="jokes">Jokes</button>
-                <button data-view="setlists">Set Lists</button>
-                <button data-view="recordings">Recordings</button>
-                <button data-view="notebook">Notebook</button>
-            </nav>
-        </header>
-
-        <main id="main-content">
-            <!-- Views are dynamically loaded here -->
-        </main>
-
-        <!-- Floating Menu Button -->
-        <button id="floating-menu-btn" class="floating-menu-btn" aria-label="Open menu">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="7" height="7"></rect>
-                <rect x="14" y="3" width="7" height="7"></rect>
-                <rect x="3" y="14" width="7" height="7"></rect>
-                <rect x="14" y="14" width="7" height="7"></rect>
-            </svg>
-        </button>
+    <!-- AI Generate Modal -->
+    <div id="ai-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>✨ AI Joke Generator <span class="ai-badge">AI</span></h3>
+                <button class="modal-close" id="close-ai-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Topic / Premise</label>
+                    <input type="text" id="ai-topic" placeholder="e.g. dating apps, airports, cats...">
+                </div>
+                <div class="form-group">
+                    <label>Style</label>
+                    <div class="ai-style-grid" id="ai-style-grid">
+                        <button class="ai-style-chip active" data-style="observational">Observational</button>
+                        <button class="ai-style-chip" data-style="one-liner">One-Liner</button>
+                        <button class="ai-style-chip" data-style="dark">Dark</button>
+                        <button class="ai-style-chip" data-style="absurd">Absurd</button>
+                        <button class="ai-style-chip" data-style="storytelling">Storytelling</button>
+                        <button class="ai-style-chip" data-style="self-deprecating">Self-Deprecating</button>
+                    </div>
+                </div>
+                <button class="btn btn-ai" id="ai-generate-btn" style="width:100%;">Generate Jokes</button>
+                <div id="ai-results" style="margin-top:16px;"></div>
+            </div>
+        </div>
     </div>
 
-    <!-- Templates for views (hidden) -->
+    <!-- Voice Input Modal -->
+    <div id="voice-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>🎤 Voice to Joke</h3>
+                <button class="modal-close" id="close-voice-modal">&times;</button>
+            </div>
+            <div class="modal-body" style="text-align:center;">
+                <p style="color:var(--text-secondary);margin-bottom:16px;">Tap the mic and speak your joke idea. We'll capture it as text.</p>
+                <button id="voice-record-btn" class="speech-btn" style="width:72px;height:72px;font-size:1.8rem;margin:0 auto 16px;">🎤</button>
+                <p id="voice-status" style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px;">Tap to start</p>
+                <div class="form-group">
+                    <textarea id="voice-text" rows="4" placeholder="Your spoken text will appear here..."></textarea>
+                </div>
+                <button class="btn btn-primary" id="voice-save-btn" style="width:100%;">Save as Joke</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>⚙️ Settings</h3>
+                <button class="modal-close" id="close-settings-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h4>AI Integration</h4>
+                    <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:10px;">
+                        Add your OpenAI API key for real AI joke generation. Without a key, the built-in comedy engine will be used.
+                    </p>
+                    <input type="password" class="api-key-input" id="openai-key-input"
+                           placeholder="sk-...">
+                    <p class="api-status disconnected" id="api-status">No API key set — using built-in engine</p>
+                    <button class="btn btn-secondary btn-sm" id="save-api-key-btn" style="margin-top:8px;">Save Key</button>
+                </div>
+                <div class="settings-section">
+                    <h4>Data</h4>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <button class="btn btn-secondary btn-sm" id="export-data-btn">Export All Data</button>
+                        <button class="btn btn-secondary btn-sm" id="import-data-btn">Import Data</button>
+                    </div>
+                    <input type="file" id="import-file-input" accept=".json" style="display:none;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Templates -->
     <div id="templates" style="display:none;">
-        <!-- Home view -->
+
+        <!-- Home -->
         <div id="home-view" class="view">
-            <div class="home-buttons">
-                <button class="home-button home-button--blue" data-view="notepad">
-                    <span class="icon">✏️</span>
-                    <div>
-                        <span class="title">Notepad</span>
-                        <span class="subtitle">Quick joke writing</span>
-                    </div>
-                </button>
-                <button class="home-button home-button--orange" data-view="jokes">
-                    <span class="icon">😄</span>
-                    <div>
-                        <span class="title">Jokes</span>
-                        <span class="subtitle">Manage your joke library</span>
-                    </div>
-                </button>
-                <button class="home-button home-button--purple" data-view="setlists">
-                    <span class="icon">📋</span>
-                    <div>
-                        <span class="title">Set Lists</span>
-                        <span class="subtitle">Curate comedy sets</span>
-                    </div>
-                </button>
-                <button class="home-button home-button--red" data-view="recordings">
-                    <span class="icon">🎙️</span>
-                    <div>
-                        <span class="title">Recordings</span>
-                        <span class="subtitle">Record performances</span>
-                    </div>
-                </button>
-                <button class="home-button home-button--brown" data-view="notebook">
-                    <span class="icon">📓</span>
-                    <div>
-                        <span class="title">Notebook</span>
-                        <span class="subtitle">Photo-based notebook</span>
-                    </div>
-                </button>
+            <div class="home-grid">
+                <div class="home-card home-card--blue" data-view="notepad">
+                    <span class="hc-icon">✏️</span>
+                    <span class="hc-title">Notepad</span>
+                    <span class="hc-sub">Quick joke writing</span>
+                </div>
+                <div class="home-card home-card--amber" data-view="jokes">
+                    <span class="hc-icon">😄</span>
+                    <span class="hc-title">Jokes</span>
+                    <span class="hc-sub">Your joke library</span>
+                </div>
+                <div class="home-card home-card--purple" data-view="setlists">
+                    <span class="hc-icon">📋</span>
+                    <span class="hc-title">Set Lists</span>
+                    <span class="hc-sub">Curate comedy sets</span>
+                </div>
+                <div class="home-card home-card--red" data-view="recordings">
+                    <span class="hc-icon">🎙️</span>
+                    <span class="hc-title">Recordings</span>
+                    <span class="hc-sub">Record performances</span>
+                </div>
+                <div class="home-card home-card--teal" data-view="notebook">
+                    <span class="hc-icon">📓</span>
+                    <span class="hc-title">Notebook</span>
+                    <span class="hc-sub">Photo notebook</span>
+                </div>
+                <div class="home-card home-card--ai" data-action="ai-generate">
+                    <span class="hc-icon">✨</span>
+                    <span class="hc-title">AI Generate</span>
+                    <span class="hc-sub">Create jokes with AI</span>
+                </div>
             </div>
         </div>
 
-        <!-- Jokes list view -->
+        <!-- Jokes list -->
         <div id="jokes-view" class="view">
             <div class="view-header">
-                <h2>Jokes</h2>
+                <h2>😄 Jokes</h2>
                 <div class="view-header-actions">
-                    <button id="manage-folders-btn" class="btn-secondary">📁 Folders</button>
-                    <button id="add-joke-btn" class="btn-primary">+ Add Joke</button>
+                    <button id="auto-organize-btn" class="btn btn-ai btn-sm">🤖 Auto-Organize</button>
+                    <button id="manage-folders-btn" class="btn btn-secondary btn-sm">📁</button>
+                    <button id="add-joke-btn" class="btn btn-primary btn-sm">+ Add</button>
                 </div>
             </div>
-            <!-- Folder bar -->
             <div class="folder-bar" id="folder-bar">
-                <button class="folder-chip active" data-folder="">All Jokes</button>
+                <button class="folder-chip active" data-folder="">All</button>
             </div>
             <div class="search-bar">
-                <input type="text" id="joke-search" placeholder="Search jokes..." aria-label="Search jokes">
+                <input type="text" id="joke-search" placeholder="Search jokes...">
             </div>
             <div class="filter-bar">
-                <select id="joke-sort" aria-label="Sort jokes">
-                    <option value="newest">Newest first</option>
-                    <option value="oldest">Oldest first</option>
+                <select id="joke-sort">
+                    <option value="newest">Newest</option>
+                    <option value="oldest">Oldest</option>
                     <option value="title">Title A–Z</option>
-                    <option value="rating">Highest rated</option>
+                    <option value="rating">Top Rated</option>
                 </select>
-                <select id="joke-filter-status" aria-label="Filter by status">
-                    <option value="">All Statuses</option>
+                <select id="joke-filter-status">
+                    <option value="">All Status</option>
                     <option value="idea">💡 Idea</option>
                     <option value="draft">✏️ Draft</option>
                     <option value="stage-ready">🎤 Stage Ready</option>
                     <option value="retired">📦 Retired</option>
                 </select>
-                <input type="text" id="joke-filter-category" placeholder="Category filter..." aria-label="Filter by category">
             </div>
             <div id="jokes-list" class="list"></div>
         </div>
 
-        <!-- Add/Edit Joke view -->
+        <!-- Joke form -->
         <div id="joke-form-view" class="view">
             <div class="view-header">
                 <h2 id="joke-form-title">Add Joke</h2>
-                <button id="cancel-joke-btn" class="btn-secondary">Cancel</button>
+                <button id="cancel-joke-btn" class="btn btn-ghost">Cancel</button>
             </div>
             <form id="joke-form">
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="joke-title">Title (1-20 chars)</label>
-                        <input type="text" id="joke-title" maxlength="20" required>
+                        <label for="joke-title">Title</label>
+                        <input type="text" id="joke-title" maxlength="30" required placeholder="Joke title...">
                     </div>
                     <div class="form-group">
                         <label for="joke-status">Status</label>
@@ -199,108 +275,110 @@
                         </select>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="joke-folder">Folder</label>
-                    <select id="joke-folder">
-                        <option value="">No folder</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Rating</label>
-                    <div class="star-rating" id="joke-rating" role="group" aria-label="Joke rating">
-                        <button type="button" class="star" data-value="1">★</button>
-                        <button type="button" class="star" data-value="2">★</button>
-                        <button type="button" class="star" data-value="3">★</button>
-                        <button type="button" class="star" data-value="4">★</button>
-                        <button type="button" class="star" data-value="5">★</button>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="joke-folder">Folder</label>
+                        <select id="joke-folder">
+                            <option value="">No folder</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Rating</label>
+                        <div class="star-rating" id="joke-rating">
+                            <button type="button" class="star" data-value="1">★</button>
+                            <button type="button" class="star" data-value="2">★</button>
+                            <button type="button" class="star" data-value="3">★</button>
+                            <button type="button" class="star" data-value="4">★</button>
+                            <button type="button" class="star" data-value="5">★</button>
+                        </div>
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="joke-setup">Setup</label>
-                    <textarea id="joke-setup" rows="3" placeholder="The setup of the joke..."></textarea>
+                    <textarea id="joke-setup" rows="3" placeholder="The setup..."></textarea>
                 </div>
                 <div class="form-group">
                     <label for="joke-punchline">Punchline</label>
                     <textarea id="joke-punchline" rows="2" placeholder="The punchline..."></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="joke-body">Notes</label>
-                    <textarea id="joke-body" rows="4" placeholder="Additional notes, variations, context..."></textarea>
+                    <label for="joke-body">Notes / Tags</label>
+                    <textarea id="joke-body" rows="3" placeholder="Extra notes, tags, variations..."></textarea>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="joke-category">Category</label>
-                        <input type="text" id="joke-category" maxlength="30" placeholder="e.g. Observational">
+                        <input type="text" id="joke-category" placeholder="e.g. Observational">
                     </div>
                     <div class="form-group">
-                        <label for="joke-tags">Tags (comma-separated)</label>
+                        <label for="joke-tags">Tags (comma sep.)</label>
                         <input type="text" id="joke-tags" placeholder="e.g. dark, callback">
                     </div>
                 </div>
                 <div class="form-actions">
-                    <button type="submit" class="btn-primary">Save</button>
-                    <button type="button" id="delete-joke-btn" class="btn-danger" style="display:none;">Delete</button>
+                    <button type="submit" class="btn btn-primary">Save Joke</button>
+                    <button type="button" id="delete-joke-btn" class="btn btn-danger" style="display:none;">Delete</button>
                 </div>
             </form>
         </div>
 
-        <!-- Joke Folders Manager view -->
+        <!-- Joke Folders -->
         <div id="joke-folders-view" class="view">
             <div class="view-header">
-                <h2>Joke Folders</h2>
-                <button id="back-from-folders" class="btn-secondary">Back</button>
+                <h2>📁 Joke Folders</h2>
+                <button id="back-from-folders" class="btn btn-ghost">Back</button>
             </div>
-            <div class="form-group" style="margin-top:16px;">
-                <label for="new-folder-name">Create Folder</label>
+            <div class="form-group" style="margin-top:12px;">
+                <label>Create Folder</label>
                 <div class="inline-form">
                     <input type="text" id="new-folder-name" maxlength="40" placeholder="Folder name...">
-                    <button id="create-folder-btn" class="btn-primary">Create</button>
+                    <button id="create-folder-btn" class="btn btn-primary btn-sm">Create</button>
                 </div>
             </div>
-            <div id="folders-list" class="list" style="margin-top:16px;"></div>
+            <div id="folders-list" class="list" style="margin-top:12px;"></div>
         </div>
 
-        <!-- Set Lists view -->
+        <!-- Set Lists -->
         <div id="setlists-view" class="view">
             <div class="view-header">
-                <h2>Set Lists</h2>
-                <button data-view="create-setlist" class="btn-primary">+ New Set List</button>
+                <h2>📋 Set Lists</h2>
+                <button id="new-setlist-btn" class="btn btn-primary btn-sm">+ New</button>
             </div>
             <div id="setlists-list" class="list"></div>
         </div>
 
-        <!-- Set List Detail view -->
+        <!-- Set List Detail -->
         <div id="setlist-detail-view" class="view">
             <div class="view-header">
                 <h2 id="setlist-name"></h2>
-                <button id="back-from-setlist" class="btn-secondary">Back</button>
+                <button id="back-from-setlist" class="btn btn-ghost">Back</button>
             </div>
             <div class="setlist-actions">
-                <button id="record-set-btn" class="btn-primary">Record Set</button>
-                <button id="edit-order-btn" class="btn-secondary">Edit Order</button>
-                <button id="rename-setlist-btn" class="btn-secondary">Rename</button>
-                <button id="delete-setlist-btn" class="btn-danger">Delete Set List</button>
+                <button id="record-set-btn" class="btn btn-primary btn-sm">🎙️ Record</button>
+                <button id="edit-order-btn" class="btn btn-secondary btn-sm">Edit Order</button>
+                <button id="rename-setlist-btn" class="btn btn-secondary btn-sm">Rename</button>
+                <button id="delete-setlist-btn" class="btn btn-danger btn-sm">Delete</button>
             </div>
             <div class="setlist-notes">
                 <label for="setlist-notes">Post-Set Notes</label>
-                <textarea id="setlist-notes" rows="4" placeholder="Add notes about this set..."></textarea>
+                <textarea id="setlist-notes" rows="3" placeholder="Notes about this set..."></textarea>
             </div>
             <div class="setlist-jokes">
-                <h3>Jokes in this set</h3>
+                <h3>Jokes in Set</h3>
                 <ul id="setlist-jokes-list"></ul>
             </div>
         </div>
 
-        <!-- Create/Edit Set List view -->
+        <!-- Create/Edit Set List -->
         <div id="create-setlist-view" class="view">
             <div class="view-header">
-                <h2 id="create-setlist-title">Create Set List</h2>
-                <button id="cancel-create-setlist" class="btn-secondary">Cancel</button>
+                <h2 id="create-setlist-title">New Set List</h2>
+                <button id="cancel-create-setlist" class="btn btn-ghost">Cancel</button>
             </div>
             <form id="create-setlist-form">
                 <div class="form-group">
-                    <label for="setlist-name-input">Set List Name (1-50 chars)</label>
-                    <input type="text" id="setlist-name-input" maxlength="50" required>
+                    <label for="setlist-name-input">Name</label>
+                    <input type="text" id="setlist-name-input" maxlength="50" required placeholder="Set list name...">
                 </div>
                 <div class="joke-picker">
                     <h3>Available Jokes</h3>
@@ -309,48 +387,46 @@
                     <ul id="selected-jokes-list" class="sortable-list"></ul>
                 </div>
                 <div class="form-actions">
-                    <button type="submit" class="btn-primary">Save Set List</button>
+                    <button type="submit" class="btn btn-primary">Save Set List</button>
                 </div>
             </form>
         </div>
 
-        <!-- Recordings view -->
+        <!-- Recordings -->
         <div id="recordings-view" class="view">
             <div class="view-header">
-                <h2>Recordings</h2>
+                <h2>🎙️ Recordings</h2>
             </div>
             <div id="recordings-list" class="list"></div>
         </div>
 
-        <!-- Recording Detail view -->
+        <!-- Recording Detail -->
         <div id="recording-detail-view" class="view">
             <div class="view-header">
                 <h2 id="recording-name"></h2>
-                <button id="back-from-recording" class="btn-secondary">Back</button>
+                <button id="back-from-recording" class="btn btn-ghost">Back</button>
             </div>
             <div class="recording-player">
                 <audio id="recording-audio" controls></audio>
-                <div class="recording-info">
-                    <p>Duration: <span id="recording-duration"></span></p>
-                </div>
+                <div class="recording-info"><p>Duration: <span id="recording-duration"></span></p></div>
             </div>
             <div class="recording-notes">
                 <label for="recording-notes">Notes</label>
-                <textarea id="recording-notes" rows="4" placeholder="Add notes about this recording..."></textarea>
+                <textarea id="recording-notes" rows="3" placeholder="Notes about this recording..."></textarea>
             </div>
             <div class="recording-actions">
-                <button id="export-recording-btn" class="btn-secondary">Export Audio</button>
-                <button id="delete-recording-btn" class="btn-danger">Delete Recording</button>
+                <button id="export-recording-btn" class="btn btn-secondary btn-sm">Export</button>
+                <button id="delete-recording-btn" class="btn btn-danger btn-sm">Delete</button>
             </div>
         </div>
 
-        <!-- Recording interface view -->
+        <!-- Record Set -->
         <div id="record-set-view" class="view">
             <div class="view-header">
                 <h2>Recording: <span id="record-setlist-name"></span></h2>
-                <button id="cancel-recording-btn" class="btn-secondary">Cancel</button>
+                <button id="cancel-recording-btn" class="btn btn-ghost">Cancel</button>
             </div>
-            <div id="mic-status" class="mic-status" aria-live="polite"></div>
+            <div id="mic-status" class="mic-status"></div>
             <div class="recording-timer" id="recording-timer">00:00</div>
             <div class="recording-controls">
                 <button id="start-record-btn" class="record-btn">Start</button>
@@ -359,41 +435,44 @@
                 <button id="stop-record-btn" class="record-btn stop" style="display:none;">Stop</button>
             </div>
             <div class="setlist-preview">
-                <h3>Set List Order</h3>
+                <h3>Set List</h3>
                 <ul id="recording-setlist-jokes"></ul>
             </div>
         </div>
 
-        <!-- Notepad view -->
+        <!-- Notepad -->
         <div id="notepad-view" class="view">
             <div class="view-header">
-                <h2>Notepad</h2>
-                <button id="export-to-joke-btn" class="btn-secondary">➕ Export to Joke</button>
+                <h2>✏️ Notepad</h2>
+                <div class="view-header-actions">
+                    <button id="export-to-joke-btn" class="btn btn-secondary btn-sm">Export to Joke</button>
+                </div>
             </div>
-            <p class="notepad-hint">Brain-dump your ideas here. Auto-saves as you type.</p>
-            <textarea id="notepad-text" class="notepad-textarea" rows="16" placeholder="Write anything here — premises, observations, one-liners..."></textarea>
+            <p class="notepad-hint">Brain-dump ideas here. Auto-saves as you type.</p>
+            <textarea id="notepad-text" class="notepad-textarea" rows="14" placeholder="Write anything — premises, observations, one-liners..."></textarea>
             <div class="notepad-actions">
-                <button id="clear-notepad-btn" class="btn-danger">Clear</button>
+                <button id="speech-notepad-btn" class="speech-btn" title="Voice input">🎤</button>
+                <button id="clear-notepad-btn" class="btn btn-danger btn-sm">Clear</button>
             </div>
         </div>
 
-        <!-- Notebook view (photo-based) -->
+        <!-- Notebook -->
         <div id="notebook-view" class="view">
             <div class="view-header">
-                <h2>Notebook</h2>
-                <button id="add-notebook-entry-btn" class="btn-primary">+ New Entry</button>
+                <h2>📓 Notebook</h2>
+                <button id="add-notebook-entry-btn" class="btn btn-primary btn-sm">+ New</button>
             </div>
             <div class="search-bar">
-                <input type="text" id="notebook-search" placeholder="Search entries..." aria-label="Search notebook">
+                <input type="text" id="notebook-search" placeholder="Search entries...">
             </div>
             <div id="notebook-list" class="list"></div>
         </div>
 
-        <!-- Notebook Entry view (photo-based) -->
+        <!-- Notebook Entry -->
         <div id="notebook-entry-view" class="view">
             <div class="view-header">
                 <h2 id="notebook-entry-form-title">New Entry</h2>
-                <button id="cancel-notebook-entry-btn" class="btn-secondary">Back</button>
+                <button id="cancel-notebook-entry-btn" class="btn btn-ghost">Back</button>
             </div>
             <form id="notebook-entry-form">
                 <div class="form-group">
@@ -402,23 +481,24 @@
                 </div>
                 <div class="form-group">
                     <label>Photos</label>
-                    <div class="photo-upload-area" id="photo-upload-area">
+                    <div class="photo-upload-area">
                         <input type="file" id="photo-input" accept="image/*" capture="environment" multiple style="display:none;">
-                        <button type="button" id="take-photo-btn" class="btn-secondary">📷 Take Photo</button>
-                        <button type="button" id="import-photo-btn" class="btn-secondary">🖼️ Import Photo</button>
+                        <button type="button" id="take-photo-btn" class="btn btn-secondary btn-sm">📷 Capture</button>
+                        <button type="button" id="import-photo-btn" class="btn btn-secondary btn-sm">🖼️ Import</button>
                     </div>
                     <div id="photo-previews" class="photo-previews"></div>
                 </div>
                 <div class="form-group">
                     <label for="entry-content">Notes</label>
-                    <textarea id="entry-content" rows="8" placeholder="Write your observation, bit, or note..."></textarea>
+                    <textarea id="entry-content" rows="6" placeholder="Your observation, bit, or note..."></textarea>
                 </div>
                 <div class="form-actions">
-                    <button type="submit" class="btn-primary">Save</button>
-                    <button type="button" id="delete-notebook-entry-btn" class="btn-danger" style="display:none;">Delete</button>
+                    <button type="submit" class="btn btn-primary">Save Entry</button>
+                    <button type="button" id="delete-notebook-entry-btn" class="btn btn-danger" style="display:none;">Delete</button>
                 </div>
             </form>
         </div>
+
     </div>
 
     <script src="app.js"></script>
