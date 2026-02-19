@@ -7,6 +7,8 @@
 const STORAGE_KEYS = {
     JOKES: 'comedy_jokes',
     SETLISTS: 'comedy_setlists',
+    FOLDERS: 'comedy_folders',
+    OPENAI_KEY: 'openai_api_key',
 };
 
 // Initialize default data if empty
@@ -16,6 +18,9 @@ function initStorage() {
     }
     if (!localStorage.getItem(STORAGE_KEYS.SETLISTS)) {
         localStorage.setItem(STORAGE_KEYS.SETLISTS, JSON.stringify([]));
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.FOLDERS)) {
+        localStorage.setItem(STORAGE_KEYS.FOLDERS, JSON.stringify([]));
     }
 }
 
@@ -54,6 +59,46 @@ function deleteJoke(id) {
     jokes = jokes.filter(j => j.id !== id);
     saveJokes(jokes);
     // Set lists reference jokes by id; missing jokes are shown as warnings in the UI.
+}
+
+// Folders CRUD
+function getFolders() {
+    return JSON.parse(localStorage.getItem(STORAGE_KEYS.FOLDERS)) || [];
+}
+
+function saveFolders(folders) {
+    localStorage.setItem(STORAGE_KEYS.FOLDERS, JSON.stringify(folders));
+}
+
+function addFolder(name) {
+    const folders = getFolders();
+    const normalized = name.trim();
+    if (!normalized) return null;
+    if (folders.some(f => f.name.toLowerCase() === normalized.toLowerCase())) return null;
+    const folder = {
+        id: crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random(),
+        name: normalized,
+        createdAt: new Date().toISOString(),
+    };
+    folders.push(folder);
+    saveFolders(folders);
+    return folder;
+}
+
+function deleteFolder(id) {
+    const folders = getFolders().filter(f => f.id !== id);
+    saveFolders(folders);
+    // Clear folder assignment from jokes
+    const jokes = getJokes().map(j => j.folderId === id ? { ...j, folderId: '' } : j);
+    saveJokes(jokes);
+}
+
+function getApiKey() {
+    return localStorage.getItem(STORAGE_KEYS.OPENAI_KEY) || '';
+}
+
+function saveApiKey(key) {
+    localStorage.setItem(STORAGE_KEYS.OPENAI_KEY, key.trim());
 }
 
 // SetLists CRUD
@@ -426,7 +471,11 @@ function hexToRgba(hex, alpha) {
 }
 
 function applyTheme(view) {
-    const theme = VIEW_THEMES[view] || VIEW_THEMES.home;
+    const alias = view === 'joke-form' || view === 'joke-folders' ? 'jokes'
+        : (view === 'setlist-detail' || view === 'create-setlist' ? 'setlists'
+            : (view === 'recording-detail' || view === 'record-set' ? 'recordings'
+                : (view === 'notebook-entry' ? 'notebook' : view)));
+    const theme = VIEW_THEMES[alias] || VIEW_THEMES.home;
     document.documentElement.style.setProperty('--accent', theme.accent);
     document.documentElement.style.setProperty('--accent-2', theme.accent2);
     document.documentElement.style.setProperty('--accent-soft', hexToRgba(theme.accent, 0.12));
@@ -486,6 +535,7 @@ function renderView() {
         case 'notepad':          renderNotepad();                           break;
         case 'notebook':         renderNotebook();                          break;
         case 'notebook-entry':   renderNotebookEntry(currentParams.id);    break;
+        case 'joke-folders':     renderJokeFolders();                       break;
     }
 }
 
@@ -495,7 +545,9 @@ function renderHome() {
     document.querySelectorAll('.home-card, .home-button').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const view = e.currentTarget.dataset.view;
+            const action = e.currentTarget.dataset.action;
             if (view) navigateTo(view);
+            if (action) handleFabAction(action);
         });
     });
 }
@@ -506,13 +558,34 @@ function renderJokes() {
     const searchInput = document.getElementById('joke-search');
     const sortSelect = document.getElementById('joke-sort');
     const statusFilter = document.getElementById('joke-filter-status');
-    const categoryFilter = document.getElementById('joke-filter-category');
     const addBtn = document.getElementById('add-joke-btn');
+    const manageFoldersBtn = document.getElementById('manage-folders-btn');
+    const autoOrganizeBtn = document.getElementById('auto-organize-btn');
+    const folderBar = document.getElementById('folder-bar');
+
+    let activeFolderId = '';
+
+    function renderFolderBar() {
+        if (!folderBar) return;
+        const folders = getFolders();
+        const chips = [
+            `<button class="folder-chip ${activeFolderId ? '' : 'active'}" data-folder="">All</button>`,
+            ...folders.map(f => `<button class="folder-chip ${activeFolderId === f.id ? 'active' : ''}" data-folder="${f.id}">${escapeHTML(f.name)}</button>`)
+        ];
+        folderBar.innerHTML = chips.join('');
+        folderBar.querySelectorAll('.folder-chip').forEach(btn => {
+            btn.addEventListener('click', () => {
+                activeFolderId = btn.dataset.folder || '';
+                renderFolderBar();
+                renderJokesList();
+            });
+        });
+    }
 
     function renderJokesList() {
         const search = (searchInput.value || '').toLowerCase();
         const status = statusFilter.value;
-        const category = (categoryFilter.value || '').toLowerCase();
+        const category = '';
         const sortBy = sortSelect.value;
 
         let filtered = jokes.filter(j => {
@@ -523,7 +596,8 @@ function renderJokes() {
                 (j.body && j.body.toLowerCase().includes(search));
             const matchStatus = !status || j.status === status;
             const matchCategory = !category || (j.category && j.category.toLowerCase().includes(category));
-            return matchSearch && matchStatus && matchCategory;
+            const matchFolder = !activeFolderId || j.folderId === activeFolderId;
+            return matchSearch && matchStatus && matchCategory && matchFolder;
         });
 
         // Sort
@@ -564,11 +638,13 @@ function renderJokes() {
     }
 
     renderJokesList();
+    renderFolderBar();
     searchInput.addEventListener('input', renderJokesList);
     sortSelect.addEventListener('change', renderJokesList);
     statusFilter.addEventListener('change', renderJokesList);
-    categoryFilter.addEventListener('input', renderJokesList);
     addBtn.addEventListener('click', () => navigateTo('joke-form'));
+    if (manageFoldersBtn) manageFoldersBtn.addEventListener('click', () => navigateTo('joke-folders'));
+    if (autoOrganizeBtn) autoOrganizeBtn.addEventListener('click', autoOrganizeJokes);
 }
 
 function renderJokeForm(id) {
@@ -579,6 +655,7 @@ function renderJokeForm(id) {
     const punchInput    = document.getElementById('joke-punchline');
     const bodyInput     = document.getElementById('joke-body');
     const statusSelect  = document.getElementById('joke-status');
+    const folderSelect  = document.getElementById('joke-folder');
     const categoryInput = document.getElementById('joke-category');
     const tagsInput     = document.getElementById('joke-tags');
     const ratingEl      = document.getElementById('joke-rating');
@@ -587,6 +664,15 @@ function renderJokeForm(id) {
     const form          = document.getElementById('joke-form');
 
     let currentRating = 0;
+
+    function renderFolderOptions(selectedId = '') {
+        if (!folderSelect) return;
+        const folders = getFolders();
+        folderSelect.innerHTML = ['<option value="">No folder</option>']
+            .concat(folders.map(f => `<option value="${f.id}">${escapeHTML(f.name)}</option>`))
+            .join('');
+        folderSelect.value = selectedId || '';
+    }
 
     // Star rating interaction
     function updateStars(value) {
@@ -609,12 +695,14 @@ function renderJokeForm(id) {
         punchInput.value        = joke.punchline || '';
         bodyInput.value         = joke.body || '';
         statusSelect.value      = joke.status || 'idea';
+        renderFolderOptions(joke.folderId || '');
         categoryInput.value     = joke.category || '';
         tagsInput.value         = (joke.tags || []).join(', ');
         updateStars(joke.rating || 0);
         deleteBtn.style.display = 'inline-block';
     } else {
         titleEl.textContent     = 'Add Joke';
+        renderFolderOptions('');
         // Check for notepad export text
         const exportText = sessionStorage.getItem('notepad_export_text');
         if (exportText) {
@@ -639,6 +727,7 @@ function renderJokeForm(id) {
             punchline: punchInput.value,
             body: bodyInput.value,
             status: statusSelect.value,
+            folderId: folderSelect ? folderSelect.value : '',
             category: categoryInput.value.trim(),
             tags: tagsInput.value.split(',').map(t => t.trim()).filter(Boolean),
             rating: currentRating,
@@ -657,6 +746,62 @@ function renderJokeForm(id) {
             navigateTo('jokes');
         }
     });
+}
+
+function renderJokeFolders() {
+    const list = document.getElementById('folders-list');
+    const backBtn = document.getElementById('back-from-folders');
+    const createBtn = document.getElementById('create-folder-btn');
+    const input = document.getElementById('new-folder-name');
+
+    function renderList() {
+        const folders = getFolders();
+        const jokes = getJokes();
+        if (!list) return;
+        if (folders.length === 0) {
+            list.innerHTML = '<p class="empty-state"><span class="empty-icon">📁</span>No folders yet.</p>';
+            return;
+        }
+        list.innerHTML = folders.map(f => {
+            const count = jokes.filter(j => j.folderId === f.id).length;
+            return `
+                <div class="folder-list-item" data-id="${f.id}">
+                    <div>
+                        <div class="folder-name">${escapeHTML(f.name)}</div>
+                        <div class="folder-count">${count} joke${count !== 1 ? 's' : ''}</div>
+                    </div>
+                    <div class="folder-actions">
+                        <button class="btn btn-danger btn-sm" data-delete="${f.id}">Delete</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        list.querySelectorAll('[data-delete]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = btn.dataset.delete;
+                if (confirm('Delete this folder? Jokes will be moved to "No folder".')) {
+                    deleteFolder(id);
+                    renderList();
+                }
+            });
+        });
+    }
+
+    if (backBtn) backBtn.addEventListener('click', () => navigateTo('jokes'));
+    if (createBtn && input) {
+        createBtn.addEventListener('click', () => {
+            const folder = addFolder(input.value);
+            if (!folder) {
+                alert('Enter a unique folder name.');
+                return;
+            }
+            input.value = '';
+            renderList();
+        });
+    }
+
+    renderList();
 }
 
 function renderSetLists() {
@@ -1017,6 +1162,7 @@ function renderNotepad() {
     const textarea   = document.getElementById('notepad-text');
     const exportBtn  = document.getElementById('export-to-joke-btn');
     const clearBtn   = document.getElementById('clear-notepad-btn');
+    const speechBtn  = document.getElementById('speech-notepad-btn');
 
     // Load saved text
     textarea.value = localStorage.getItem(NOTEPAD_KEY) || '';
@@ -1044,6 +1190,27 @@ function renderNotepad() {
             localStorage.setItem(NOTEPAD_KEY, '');
         }
     });
+
+    if (speechBtn) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) return;
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = true;
+
+        speechBtn.addEventListener('click', () => {
+            speechBtn.classList.add('listening');
+            recognition.start();
+        });
+
+        recognition.onresult = (event) => {
+            const transcript = Array.from(event.results).map(r => r[0].transcript).join(' ');
+            textarea.value = `${textarea.value}\n${transcript}`.trim();
+            localStorage.setItem(NOTEPAD_KEY, textarea.value);
+        };
+        recognition.onend = () => speechBtn.classList.remove('listening');
+        recognition.onerror = () => speechBtn.classList.remove('listening');
+    }
 }
 
 // ---------- Notebook ----------
@@ -1156,6 +1323,362 @@ function renderNotebookEntry(id) {
     });
 }
 
+// ---------- FAB + AI + Voice ----------
+function initFabMenu() {
+    const fab = document.getElementById('fab');
+    const menu = document.getElementById('fab-menu');
+    if (!fab || !menu) return;
+
+    const closeMenu = () => menu.classList.remove('open');
+    const toggleMenu = () => menu.classList.toggle('open');
+
+    fab.addEventListener('click', toggleMenu);
+    document.addEventListener('click', (e) => {
+        if (!menu.contains(e.target) && !fab.contains(e.target)) closeMenu();
+    });
+
+    menu.querySelectorAll('.fab-menu-item').forEach(btn => {
+        btn.addEventListener('click', () => {
+            closeMenu();
+            handleFabAction(btn.dataset.action);
+        });
+    });
+}
+
+function handleFabAction(action) {
+    switch (action) {
+        case 'add-joke':
+            navigateTo('joke-form');
+            break;
+        case 'ai-generate':
+            openModal('ai-modal');
+            break;
+        case 'voice-joke':
+            openModal('voice-modal');
+            break;
+        case 'quick-note':
+            navigateTo('notepad');
+            break;
+        default:
+            break;
+    }
+}
+
+function openModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.add('open');
+}
+
+function closeModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.remove('open');
+}
+
+function initAiModal() {
+    const modal = document.getElementById('ai-modal');
+    const closeBtn = document.getElementById('close-ai-modal');
+    const generateBtn = document.getElementById('ai-generate-btn');
+    const topicInput = document.getElementById('ai-topic');
+    const results = document.getElementById('ai-results');
+    const styleGrid = document.getElementById('ai-style-grid');
+    const agentToggle = document.getElementById('ai-agent-toggle');
+
+    if (!modal || !generateBtn || !topicInput || !results || !styleGrid) return;
+
+    let activeStyle = 'observational';
+
+    styleGrid.querySelectorAll('.ai-style-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            styleGrid.querySelectorAll('.ai-style-chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            activeStyle = chip.dataset.style || 'observational';
+        });
+    });
+
+    const run = async () => {
+        const topic = topicInput.value.trim();
+        if (!topic) {
+            alert('Add a topic or premise first.');
+            return;
+        }
+        results.innerHTML = '<div class="ai-loading"><div class="spinner"></div>Generating…</div>';
+        const jokes = await generateAiJokes(topic, activeStyle);
+        renderAiResults(jokes, results, !!agentToggle?.checked);
+    };
+
+    generateBtn.addEventListener('click', run);
+    closeBtn?.addEventListener('click', () => closeModal('ai-modal'));
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal('ai-modal');
+    });
+}
+
+function renderAiResults(jokes, container, autoAdd) {
+    if (!jokes.length) {
+        container.innerHTML = '<p class="empty-state">No ideas generated. Try a new prompt.</p>';
+        return;
+    }
+
+    container.innerHTML = jokes.map((j, idx) => {
+        const title = escapeHTML(j.title || `Joke ${idx + 1}`);
+        const setup = escapeHTML(j.setup || '');
+        const punch = escapeHTML(j.punchline || '');
+        return `
+            <div class="ai-result-card">
+                <h4>${title}</h4>
+                <p>${setup}</p>
+                ${punch ? `<p><strong>Punchline:</strong> ${punch}</p>` : ''}
+                <div class="ai-result-actions">
+                    <button class="btn btn-primary btn-sm" data-add="${idx}">Add to Jokes</button>
+                    <button class="btn btn-secondary btn-sm" data-edit="${idx}">Open Editor</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    const addToJokes = (joke) => {
+        addJoke({
+            title: joke.title || 'New Joke',
+            setup: joke.setup || '',
+            punchline: joke.punchline || '',
+            body: joke.body || '',
+            status: 'idea',
+            category: joke.category || '',
+            tags: joke.tags || [],
+            rating: 0,
+            folderId: '',
+        });
+    };
+
+    if (autoAdd) {
+        jokes.forEach(addToJokes);
+        container.insertAdjacentHTML('afterbegin', '<p class="api-status connected">Agent mode: jokes added to your jokebook.</p>');
+    }
+
+    container.querySelectorAll('[data-add]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const joke = jokes[parseInt(btn.dataset.add, 10)];
+            addToJokes(joke);
+            navigateTo('jokes');
+        });
+    });
+    container.querySelectorAll('[data-edit]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const joke = jokes[parseInt(btn.dataset.edit, 10)];
+            sessionStorage.setItem('notepad_export_text', joke.setup || joke.body || '');
+            navigateTo('joke-form');
+        });
+    });
+}
+
+async function generateAiJokes(topic, style) {
+    const key = getApiKey();
+    if (!key) return generateFallbackJokes(topic, style);
+    try {
+        const prompt = `You are a comedy writing assistant. Return a JSON array of 3 jokes. Each object should include title, setup, punchline, category, and tags (array). Topic: "${topic}". Style: "${style}".`;
+        const content = await callOpenAI(prompt, key);
+        const data = safeJsonParse(content);
+        if (Array.isArray(data)) return data;
+    } catch (err) {
+        console.error('AI error', err);
+    }
+    return generateFallbackJokes(topic, style);
+}
+
+function generateFallbackJokes(topic, style) {
+    const base = `(${style}) ${topic}`;
+    return [
+        { title: `${base} #1`, setup: `So I've been thinking about ${topic}...`, punchline: `Turns out ${topic} thinks about me too.`, category: style, tags: [style, topic] },
+        { title: `${base} #2`, setup: `The wild thing about ${topic} is...`, punchline: `...it makes me look organized by comparison.`, category: style, tags: [style, topic] },
+        { title: `${base} #3`, setup: `I tried to fix my ${topic} problem...`, punchline: `Now it has my number.`, category: style, tags: [style, topic] },
+    ];
+}
+
+function safeJsonParse(text) {
+    try { return JSON.parse(text); } catch { /* ignore */ }
+    const match = text.match(/```json([\s\S]*?)```/i) || text.match(/```([\s\S]*?)```/i);
+    if (match) {
+        try { return JSON.parse(match[1].trim()); } catch { /* ignore */ }
+    }
+    return null;
+}
+
+async function callOpenAI(prompt, apiKey) {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.8,
+        }),
+    });
+    if (!response.ok) throw new Error('OpenAI request failed');
+    const json = await response.json();
+    return json.choices?.[0]?.message?.content || '';
+}
+
+function initVoiceModal() {
+    const modal = document.getElementById('voice-modal');
+    const closeBtn = document.getElementById('close-voice-modal');
+    const recordBtn = document.getElementById('voice-record-btn');
+    const status = document.getElementById('voice-status');
+    const textArea = document.getElementById('voice-text');
+    const saveBtn = document.getElementById('voice-save-btn');
+
+    if (!modal || !recordBtn || !textArea || !saveBtn) return;
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = SpeechRecognition ? new SpeechRecognition() : null;
+    let listening = false;
+
+    if (recognition) {
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.onresult = (event) => {
+            const transcript = Array.from(event.results).map(r => r[0].transcript).join(' ');
+            textArea.value = transcript;
+        };
+        recognition.onend = () => {
+            listening = false;
+            recordBtn.classList.remove('listening');
+            if (status) status.textContent = 'Tap to start';
+        };
+    }
+
+    recordBtn.addEventListener('click', () => {
+        if (!recognition) {
+            alert('Speech recognition is not supported in this browser.');
+            return;
+        }
+        if (!listening) {
+            listening = true;
+            recordBtn.classList.add('listening');
+            if (status) status.textContent = 'Listening...';
+            recognition.start();
+        } else {
+            recognition.stop();
+        }
+    });
+
+    saveBtn.addEventListener('click', () => {
+        const text = textArea.value.trim();
+        if (!text) { alert('Say something first.'); return; }
+        addJoke({
+            title: text.slice(0, 30),
+            setup: text,
+            punchline: '',
+            body: '',
+            status: 'idea',
+            category: '',
+            tags: [],
+            rating: 0,
+            folderId: '',
+        });
+        closeModal('voice-modal');
+        navigateTo('jokes');
+    });
+
+    closeBtn?.addEventListener('click', () => closeModal('voice-modal'));
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal('voice-modal');
+    });
+}
+
+async function autoOrganizeJokes() {
+    const jokes = getJokes();
+    if (!jokes.length) {
+        alert('Add a few jokes first.');
+        return;
+    }
+
+    const key = getApiKey();
+    if (key) {
+        try {
+            const payload = jokes.map(j => ({ id: j.id, title: j.title, setup: j.setup, category: j.category || '' }));
+            const prompt = `You are organizing jokes into folders. Return JSON array of objects with id and folder. Use 3-6 folder names. Data: ${JSON.stringify(payload)}`;
+            const content = await callOpenAI(prompt, key);
+            const data = safeJsonParse(content);
+            if (Array.isArray(data)) {
+                applyFolderAssignments(data);
+                alert('Auto-organized using AI.');
+                renderView();
+                return;
+            }
+        } catch (err) {
+            console.error('Auto-organize error', err);
+        }
+    }
+
+    // Fallback heuristic
+    const assignments = jokes.map(j => ({
+        id: j.id,
+        folder: guessFolderFromText(`${j.title} ${j.setup} ${j.category}`),
+    }));
+    applyFolderAssignments(assignments);
+    alert('Auto-organized with built-in rules.');
+    renderView();
+}
+
+function guessFolderFromText(text) {
+    const t = text.toLowerCase();
+    if (t.match(/date|love|relationship|marriage|breakup/)) return 'Relationships';
+    if (t.match(/travel|airport|flight|hotel|vacation/)) return 'Travel';
+    if (t.match(/work|boss|office|meeting|job/)) return 'Work';
+    if (t.match(/family|mom|dad|kids|parents/)) return 'Family';
+    if (t.match(/tech|phone|app|internet|ai/)) return 'Tech';
+    return 'Misc';
+}
+
+function applyFolderAssignments(assignments) {
+    const folders = getFolders();
+    const folderMap = new Map(folders.map(f => [f.name.toLowerCase(), f]));
+    const ensureFolder = (name) => {
+        const key = name.toLowerCase();
+        if (folderMap.has(key)) return folderMap.get(key);
+        const folder = addFolder(name);
+        if (folder) folderMap.set(key, folder);
+        return folder;
+    };
+
+    const jokes = getJokes();
+    const updates = new Map(assignments.map(a => [a.id, a.folder]));
+    const next = jokes.map(j => {
+        if (!updates.has(j.id)) return j;
+        const folder = ensureFolder(updates.get(j.id) || 'Misc');
+        return { ...j, folderId: folder ? folder.id : '' };
+    });
+    saveJokes(next);
+}
+
+function initApiKeyControls() {
+    const input = document.getElementById('openai-key-input');
+    const status = document.getElementById('api-status');
+    const saveBtn = document.getElementById('save-api-key-btn');
+
+    if (!input || !status || !saveBtn) return;
+
+    const refresh = () => {
+        const key = getApiKey();
+        status.textContent = key ? 'API key set — using OpenAI' : 'No API key set — using built-in engine';
+        status.classList.toggle('connected', !!key);
+        status.classList.toggle('disconnected', !key);
+        input.value = key ? '••••••••••••••••' : '';
+    };
+
+    saveBtn.addEventListener('click', () => {
+        if (input.value && !input.value.startsWith('•')) {
+            saveApiKey(input.value);
+        }
+        refresh();
+    });
+
+    refresh();
+}
+
 // ---------- Menu + Settings ----------
 function initMenuControls() {
     const menuBtn = document.getElementById('menu-btn');
@@ -1206,6 +1729,7 @@ function initSettingsModal() {
     });
 
     initPermissionButtons();
+    initApiKeyControls();
 }
 
 // ---------- Web Permissions (Equivalents) ----------
@@ -1365,6 +1889,9 @@ window.addEventListener('load', async () => {
     await openDB();
     initMenuControls();
     initSettingsModal();
+    initFabMenu();
+    initAiModal();
+    initVoiceModal();
 
     // Parse initial hash
     const hash = window.location.hash.slice(1) || 'home';
