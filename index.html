@@ -176,6 +176,44 @@
                     </div>
                     <input type="file" id="import-file-input" accept=".json" style="display:none;">
                 </div>
+                <div class="settings-section">
+                    <h4>Permissions (Web Equivalent)</h4>
+                    <div class="perm-list">
+                        <div class="perm-item">
+                            <div>
+                                <div class="perm-title">Microphone</div>
+                                <div class="perm-desc">Recording performances</div>
+                            </div>
+                            <span class="perm-status" id="perm-mic-status">Unknown</span>
+                            <button class="btn btn-secondary btn-sm" id="perm-mic-btn">Request</button>
+                        </div>
+                        <div class="perm-item">
+                            <div>
+                                <div class="perm-title">Camera</div>
+                                <div class="perm-desc">Scanning notebooks</div>
+                            </div>
+                            <span class="perm-status" id="perm-camera-status">Unknown</span>
+                            <button class="btn btn-secondary btn-sm" id="perm-camera-btn">Request</button>
+                        </div>
+                        <div class="perm-item">
+                            <div>
+                                <div class="perm-title">Photo Library (Read/Write)</div>
+                                <div class="perm-desc">Importing and saving scans</div>
+                            </div>
+                            <span class="perm-status" id="perm-photo-status">User Prompt</span>
+                            <button class="btn btn-secondary btn-sm" id="perm-photo-btn">Open Picker</button>
+                        </div>
+                        <div class="perm-item">
+                            <div>
+                                <div class="perm-title">Speech Recognition</div>
+                                <div class="perm-desc">Transcription (optional)</div>
+                            </div>
+                            <span class="perm-status" id="perm-speech-status">Unknown</span>
+                            <button class="btn btn-secondary btn-sm" id="perm-speech-btn">Request</button>
+                        </div>
+                    </div>
+                    <input type="file" id="perm-photo-input" accept="image/*" style="display:none;">
+                </div>
             </div>
         </div>
     </div>

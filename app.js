@@ -1121,6 +1121,159 @@ function renderNotebookEntry(id) {
     });
 }
 
+// ---------- Menu + Settings ----------
+function initMenuControls() {
+    const menuBtn = document.getElementById('menu-btn');
+    const menu = document.getElementById('side-menu');
+    const overlay = document.getElementById('menu-overlay');
+    const closeBtn = document.getElementById('close-menu-btn');
+
+    if (!menuBtn || !menu || !overlay || !closeBtn) return;
+
+    const openMenu = () => {
+        menu.classList.add('open');
+        overlay.classList.add('open');
+    };
+    const closeMenu = () => {
+        menu.classList.remove('open');
+        overlay.classList.remove('open');
+    };
+
+    menuBtn.addEventListener('click', openMenu);
+    closeBtn.addEventListener('click', closeMenu);
+    overlay.addEventListener('click', closeMenu);
+
+    menu.querySelectorAll('.side-menu-item[data-view]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            closeMenu();
+            navigateTo(btn.dataset.view);
+        });
+    });
+}
+
+function initSettingsModal() {
+    const settingsModal = document.getElementById('settings-modal');
+    const openBtn = document.getElementById('open-settings-btn');
+    const closeBtn = document.getElementById('close-settings-modal');
+
+    if (!settingsModal || !openBtn || !closeBtn) return;
+
+    const openModal = () => {
+        settingsModal.classList.add('open');
+        updatePermissionStatuses();
+    };
+    const closeModal = () => settingsModal.classList.remove('open');
+
+    openBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+    settingsModal.addEventListener('click', e => {
+        if (e.target === settingsModal) closeModal();
+    });
+
+    initPermissionButtons();
+}
+
+// ---------- Web Permissions (Equivalents) ----------
+function setPermStatus(id, text) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+}
+
+async function updatePermissionStatuses() {
+    try {
+        if (navigator.permissions?.query) {
+            const mic = await navigator.permissions.query({ name: 'microphone' });
+            setPermStatus('perm-mic-status', mic.state);
+        } else {
+            setPermStatus('perm-mic-status', 'Unknown');
+        }
+    } catch {
+        setPermStatus('perm-mic-status', 'Unknown');
+    }
+
+    try {
+        if (navigator.permissions?.query) {
+            const cam = await navigator.permissions.query({ name: 'camera' });
+            setPermStatus('perm-camera-status', cam.state);
+        } else {
+            setPermStatus('perm-camera-status', 'Unknown');
+        }
+    } catch {
+        setPermStatus('perm-camera-status', 'Unknown');
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    setPermStatus('perm-speech-status', SpeechRecognition ? 'Supported' : 'Unsupported');
+    setPermStatus('perm-photo-status', 'User Prompt');
+}
+
+function initPermissionButtons() {
+    const micBtn = document.getElementById('perm-mic-btn');
+    const camBtn = document.getElementById('perm-camera-btn');
+    const photoBtn = document.getElementById('perm-photo-btn');
+    const speechBtn = document.getElementById('perm-speech-btn');
+    const photoInput = document.getElementById('perm-photo-input');
+
+    if (micBtn) {
+        micBtn.addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                stream.getTracks().forEach(track => track.stop());
+                setPermStatus('perm-mic-status', 'granted');
+            } catch (err) {
+                setPermStatus('perm-mic-status', err.name === 'NotAllowedError' ? 'denied' : 'error');
+            }
+        });
+    }
+
+    if (camBtn) {
+        camBtn.addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                stream.getTracks().forEach(track => track.stop());
+                setPermStatus('perm-camera-status', 'granted');
+            } catch (err) {
+                setPermStatus('perm-camera-status', err.name === 'NotAllowedError' ? 'denied' : 'error');
+            }
+        });
+    }
+
+    if (photoBtn && photoInput) {
+        photoBtn.addEventListener('click', () => photoInput.click());
+        photoInput.addEventListener('change', () => {
+            setPermStatus('perm-photo-status', photoInput.files?.length ? 'granted' : 'user prompt');
+            photoInput.value = '';
+        });
+    }
+
+    if (speechBtn) {
+        speechBtn.addEventListener('click', () => {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                setPermStatus('perm-speech-status', 'Unsupported');
+                return;
+            }
+            try {
+                const recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.onstart = () => setPermStatus('perm-speech-status', 'prompt');
+                recognition.onresult = () => setPermStatus('perm-speech-status', 'granted');
+                recognition.onerror = () => setPermStatus('perm-speech-status', 'denied');
+                recognition.onend = () => {
+                    // Leave last known status
+                };
+                recognition.start();
+                setTimeout(() => {
+                    try { recognition.stop(); } catch { /* ignore */ }
+                }, 2000);
+            } catch {
+                setPermStatus('perm-speech-status', 'error');
+            }
+        });
+    }
+}
+
 // ---------- Utility ----------
 function escapeHTML(str) {
     if (!str) return '';
@@ -1175,6 +1328,8 @@ window.addEventListener('load', async () => {
     initPasswordGate();
     initStorage();
     await openDB();
+    initMenuControls();
+    initSettingsModal();
 
     // Parse initial hash
     const hash = window.location.hash.slice(1) || 'home';
