@@ -439,15 +439,18 @@ function renderView() {
 
     // Dispatch to view-specific render function
     switch (currentView) {
-        case 'home':           renderHome();                              break;
-        case 'jokes':          renderJokes();                             break;
-        case 'joke-form':      renderJokeForm(currentParams.id);         break;
-        case 'setlists':       renderSetLists();                          break;
-        case 'setlist-detail': renderSetListDetail(currentParams.id);    break;
-        case 'create-setlist': renderCreateSetList(currentParams.id);    break;
-        case 'recordings':     renderRecordings();                        break;
+        case 'home':             renderHome();                              break;
+        case 'jokes':            renderJokes();                             break;
+        case 'joke-form':        renderJokeForm(currentParams.id);         break;
+        case 'setlists':         renderSetLists();                          break;
+        case 'setlist-detail':   renderSetListDetail(currentParams.id);    break;
+        case 'create-setlist':   renderCreateSetList(currentParams.id);    break;
+        case 'recordings':       renderRecordings();                        break;
         case 'recording-detail': renderRecordingDetail(currentParams.id); break;
-        case 'record-set':     renderRecordSet(currentParams.id);        break;
+        case 'record-set':       renderRecordSet(currentParams.id);        break;
+        case 'notepad':          renderNotepad();                           break;
+        case 'notebook':         renderNotebook();                          break;
+        case 'notebook-entry':   renderNotebookEntry(currentParams.id);    break;
     }
 }
 
@@ -466,27 +469,59 @@ function renderJokes() {
     const jokes = getJokes();
     const container = document.getElementById('jokes-list');
     const searchInput = document.getElementById('joke-search');
+    const sortSelect = document.getElementById('joke-sort');
+    const statusFilter = document.getElementById('joke-filter-status');
+    const categoryFilter = document.getElementById('joke-filter-category');
     const addBtn = document.getElementById('add-joke-btn');
 
-    function renderJokesList(filter = '') {
-        const lower = filter.toLowerCase();
-        const filtered = jokes.filter(j =>
-            j.title.toLowerCase().includes(lower) ||
-            (j.body && j.body.toLowerCase().includes(lower))
-        );
+    function renderJokesList() {
+        const search = (searchInput.value || '').toLowerCase();
+        const status = statusFilter.value;
+        const category = (categoryFilter.value || '').toLowerCase();
+        const sortBy = sortSelect.value;
+
+        let filtered = jokes.filter(j => {
+            const matchSearch = !search ||
+                j.title.toLowerCase().includes(search) ||
+                (j.setup && j.setup.toLowerCase().includes(search)) ||
+                (j.punchline && j.punchline.toLowerCase().includes(search)) ||
+                (j.body && j.body.toLowerCase().includes(search));
+            const matchStatus = !status || j.status === status;
+            const matchCategory = !category || (j.category && j.category.toLowerCase().includes(category));
+            return matchSearch && matchStatus && matchCategory;
+        });
+
+        // Sort
+        filtered.sort((a, b) => {
+            switch (sortBy) {
+                case 'oldest':  return new Date(a.createdAt) - new Date(b.createdAt);
+                case 'title':   return (a.title || '').localeCompare(b.title || '');
+                case 'rating':  return (b.rating || 0) - (a.rating || 0);
+                case 'newest':
+                default:        return new Date(b.createdAt) - new Date(a.createdAt);
+            }
+        });
 
         if (filtered.length === 0) {
-            container.innerHTML = `<p class="empty">${filter ? 'No jokes match your search.' : 'No jokes yet. Add your first one!'}</p>`;
+            container.innerHTML = `<p class="empty">${search || status || category ? 'No jokes match your filters.' : 'No jokes yet. Add your first one!'}</p>`;
             return;
         }
 
-        container.innerHTML = filtered.map(j => `
+        const statusLabels = { idea: '💡 Idea', draft: '✏️ Draft', 'stage-ready': '🎤 Stage Ready', retired: '📦 Retired' };
+
+        container.innerHTML = filtered.map(j => {
+            const stars = j.rating ? '★'.repeat(j.rating) + '☆'.repeat(5 - j.rating) : '';
+            const statusBadge = j.status ? `<span class="joke-status joke-status--${j.status}">${statusLabels[j.status] || j.status}</span>` : '';
+            const preview = j.setup || j.body || '';
+            return `
             <div class="list-item" data-id="${j.id}">
-                <h3>${escapeHTML(j.title)}</h3>
-                <p>${escapeHTML((j.body || '').slice(0, 100))}${j.body && j.body.length > 100 ? '…' : ''}</p>
-                <small style="color:var(--text-secondary);">Updated: ${new Date(j.updatedAt).toLocaleDateString()}</small>
+                <h3>${escapeHTML(j.title)}${statusBadge}</h3>
+                <p>${escapeHTML(preview.slice(0, 120))}${preview.length > 120 ? '…' : ''}</p>
+                ${stars ? `<span class="joke-rating-stars">${stars}</span>` : ''}
+                <small>Updated: ${new Date(j.updatedAt).toLocaleDateString()}${j.category ? ' • ' + escapeHTML(j.category) : ''}</small>
             </div>
-        `).join('');
+        `;
+        }).join('');
 
         container.querySelectorAll('.list-item').forEach(el => {
             el.addEventListener('click', () => navigateTo('joke-form', { id: el.dataset.id }));
@@ -494,30 +529,63 @@ function renderJokes() {
     }
 
     renderJokesList();
-    searchInput.addEventListener('input', e => renderJokesList(e.target.value));
+    searchInput.addEventListener('input', renderJokesList);
+    sortSelect.addEventListener('change', renderJokesList);
+    statusFilter.addEventListener('change', renderJokesList);
+    categoryFilter.addEventListener('input', renderJokesList);
     addBtn.addEventListener('click', () => navigateTo('joke-form'));
 }
 
 function renderJokeForm(id) {
     const isEdit = !!id;
-    const titleEl     = document.getElementById('joke-form-title');
-    const titleInput  = document.getElementById('joke-title');
-    const bodyInput   = document.getElementById('joke-body');
-    const cancelBtn   = document.getElementById('cancel-joke-btn');
-    const deleteBtn   = document.getElementById('delete-joke-btn');
-    const form        = document.getElementById('joke-form');
+    const titleEl       = document.getElementById('joke-form-title');
+    const titleInput    = document.getElementById('joke-title');
+    const setupInput    = document.getElementById('joke-setup');
+    const punchInput    = document.getElementById('joke-punchline');
+    const bodyInput     = document.getElementById('joke-body');
+    const statusSelect  = document.getElementById('joke-status');
+    const categoryInput = document.getElementById('joke-category');
+    const tagsInput     = document.getElementById('joke-tags');
+    const ratingEl      = document.getElementById('joke-rating');
+    const cancelBtn     = document.getElementById('cancel-joke-btn');
+    const deleteBtn     = document.getElementById('delete-joke-btn');
+    const form          = document.getElementById('joke-form');
 
+    let currentRating = 0;
+
+    // Star rating interaction
+    function updateStars(value) {
+        currentRating = value;
+        ratingEl.querySelectorAll('.star').forEach(s => {
+            s.classList.toggle('active', parseInt(s.dataset.value) <= value);
+        });
+    }
+    ratingEl.querySelectorAll('.star').forEach(s => {
+        s.addEventListener('click', () => updateStars(parseInt(s.dataset.value)));
+    });
+
+    // Pre-fill if editing or if there's notepad text for export
     if (isEdit) {
         const joke = getJokes().find(j => j.id === id);
         if (!joke) { navigateTo('jokes'); return; }
-        titleEl.textContent   = 'Edit Joke';
-        titleInput.value      = joke.title;
-        bodyInput.value       = joke.body || '';
+        titleEl.textContent     = 'Edit Joke';
+        titleInput.value        = joke.title || '';
+        setupInput.value        = joke.setup || '';
+        punchInput.value        = joke.punchline || '';
+        bodyInput.value         = joke.body || '';
+        statusSelect.value      = joke.status || 'idea';
+        categoryInput.value     = joke.category || '';
+        tagsInput.value         = (joke.tags || []).join(', ');
+        updateStars(joke.rating || 0);
         deleteBtn.style.display = 'inline-block';
     } else {
         titleEl.textContent     = 'Add Joke';
-        titleInput.value        = '';
-        bodyInput.value         = '';
+        // Check for notepad export text
+        const exportText = sessionStorage.getItem('notepad_export_text');
+        if (exportText) {
+            setupInput.value = exportText;
+            sessionStorage.removeItem('notepad_export_text');
+        }
         deleteBtn.style.display = 'none';
     }
 
@@ -530,11 +598,20 @@ function renderJokeForm(id) {
             alert('Title must be 1-20 characters');
             return;
         }
-        const body = bodyInput.value;
+        const jokeData = {
+            title,
+            setup: setupInput.value,
+            punchline: punchInput.value,
+            body: bodyInput.value,
+            status: statusSelect.value,
+            category: categoryInput.value.trim(),
+            tags: tagsInput.value.split(',').map(t => t.trim()).filter(Boolean),
+            rating: currentRating,
+        };
         if (isEdit) {
-            updateJoke(id, { title, body });
+            updateJoke(id, jokeData);
         } else {
-            addJoke({ title, body });
+            addJoke(jokeData);
         }
         navigateTo('jokes');
     });
@@ -896,6 +973,152 @@ async function checkMicPermission() {
         // Permissions API not available (some Safari versions) — show neutral hint
         showMicStatus('prompt', '🎙️ Tap Start — your browser will ask for microphone permission.');
     }
+}
+
+// ---------- Notepad ----------
+const NOTEPAD_KEY = 'comedy_notepad';
+
+function renderNotepad() {
+    const textarea   = document.getElementById('notepad-text');
+    const exportBtn  = document.getElementById('export-to-joke-btn');
+    const clearBtn   = document.getElementById('clear-notepad-btn');
+
+    // Load saved text
+    textarea.value = localStorage.getItem(NOTEPAD_KEY) || '';
+
+    // Auto-save on every keystroke
+    textarea.addEventListener('input', () => {
+        localStorage.setItem(NOTEPAD_KEY, textarea.value);
+    });
+
+    // Export to joke: store text in session, navigate to joke-form
+    exportBtn.addEventListener('click', () => {
+        const text = textarea.value.trim();
+        if (!text) {
+            alert('Write something first before exporting to a joke.');
+            return;
+        }
+        sessionStorage.setItem('notepad_export_text', text);
+        navigateTo('joke-form');
+    });
+
+    // Clear notepad
+    clearBtn.addEventListener('click', () => {
+        if (!textarea.value.trim() || confirm('Clear all notepad text?')) {
+            textarea.value = '';
+            localStorage.setItem(NOTEPAD_KEY, '');
+        }
+    });
+}
+
+// ---------- Notebook ----------
+const NOTEBOOK_KEY = 'comedy_notebook';
+
+function getNotebookEntries() {
+    return JSON.parse(localStorage.getItem(NOTEBOOK_KEY)) || [];
+}
+
+function saveNotebookEntries(entries) {
+    localStorage.setItem(NOTEBOOK_KEY, JSON.stringify(entries));
+}
+
+function renderNotebook() {
+    const container    = document.getElementById('notebook-list');
+    const searchInput  = document.getElementById('notebook-search');
+    const addBtn       = document.getElementById('add-notebook-entry-btn');
+
+    function renderList() {
+        const query   = (searchInput.value || '').toLowerCase();
+        const entries = getNotebookEntries()
+            .filter(e =>
+                !query ||
+                (e.title && e.title.toLowerCase().includes(query)) ||
+                (e.content && e.content.toLowerCase().includes(query))
+            )
+            .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+
+        if (entries.length === 0) {
+            container.innerHTML = `<p class="empty">${query ? 'No entries match your search.' : 'No notebook entries yet. Create one!'}</p>`;
+            return;
+        }
+
+        container.innerHTML = entries.map(e => {
+            const preview = (e.content || '').slice(0, 100);
+            return `
+            <div class="list-item" data-id="${e.id}">
+                <h3>${escapeHTML(e.title || 'Untitled')}</h3>
+                <p>${escapeHTML(preview)}${preview.length >= 100 ? '…' : ''}</p>
+                <small>Updated: ${new Date(e.updatedAt).toLocaleDateString()}</small>
+            </div>
+            `;
+        }).join('');
+
+        container.querySelectorAll('.list-item').forEach(el => {
+            el.addEventListener('click', () => navigateTo('notebook-entry', { id: el.dataset.id }));
+        });
+    }
+
+    renderList();
+    searchInput.addEventListener('input', renderList);
+    addBtn.addEventListener('click', () => navigateTo('notebook-entry'));
+}
+
+function renderNotebookEntry(id) {
+    const isEdit      = !!id;
+    const titleEl     = document.getElementById('notebook-entry-form-title');
+    const titleInput  = document.getElementById('entry-title');
+    const contentInput = document.getElementById('entry-content');
+    const cancelBtn   = document.getElementById('cancel-notebook-entry-btn');
+    const deleteBtn   = document.getElementById('delete-notebook-entry-btn');
+    const form        = document.getElementById('notebook-entry-form');
+
+    if (isEdit) {
+        const entry = getNotebookEntries().find(e => e.id === id);
+        if (!entry) { navigateTo('notebook'); return; }
+        titleEl.textContent     = 'Edit Entry';
+        titleInput.value        = entry.title || '';
+        contentInput.value      = entry.content || '';
+        deleteBtn.style.display = 'inline-block';
+    } else {
+        titleEl.textContent     = 'New Entry';
+        titleInput.value        = '';
+        contentInput.value      = '';
+        deleteBtn.style.display = 'none';
+    }
+
+    cancelBtn.addEventListener('click', () => navigateTo('notebook'));
+
+    form.addEventListener('submit', e => {
+        e.preventDefault();
+        const title = titleInput.value.trim();
+        if (!title) { alert('Please enter a title.'); return; }
+
+        const entries = getNotebookEntries();
+        if (isEdit) {
+            const idx = entries.findIndex(e => e.id === id);
+            if (idx !== -1) {
+                entries[idx] = { ...entries[idx], title, content: contentInput.value, updatedAt: new Date().toISOString() };
+            }
+        } else {
+            entries.push({
+                id: crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random(),
+                title,
+                content: contentInput.value,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            });
+        }
+        saveNotebookEntries(entries);
+        navigateTo('notebook');
+    });
+
+    deleteBtn.addEventListener('click', () => {
+        if (confirm('Delete this notebook entry?')) {
+            const entries = getNotebookEntries().filter(e => e.id !== id);
+            saveNotebookEntries(entries);
+            navigateTo('notebook');
+        }
+    });
 }
 
 // ---------- Utility ----------
