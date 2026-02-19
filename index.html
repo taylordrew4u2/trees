@@ -654,8 +654,49 @@
 
     </div>
 
-    <!-- ElevenLabs ConvAI Chat Widget -->
+    <!-- ElevenLabs ConvAI Chat Widget (hidden default bubble) -->
     <elevenlabs-convai agent-id="agent_7401ka31ry6qftr9ab89em3339w9"></elevenlabs-convai>
+
+    <!-- Floating Clown Chat Button -->
+    <button id="clown-chat-btn" class="clown-chat-btn" aria-label="Chat" title="Chat with AI">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+        <!-- Head -->
+        <circle cx="50" cy="52" r="30"/>
+        <!-- Hat -->
+        <rect x="30" y="18" width="40" height="8" rx="3"/>
+        <rect x="38" y="6" width="24" height="16" rx="4"/>
+        <circle cx="50" cy="6" r="5"/>
+        <!-- Left eye -->
+        <circle cx="40" cy="46" r="5" fill="#1a1a2e"/>
+        <!-- Right eye -->
+        <circle cx="60" cy="46" r="5" fill="#1a1a2e"/>
+        <!-- Nose -->
+        <circle cx="50" cy="55" r="4.5" fill="#fff"/>
+        <!-- Mouth -->
+        <path d="M38 62 Q50 75 62 62" stroke="#1a1a2e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <!-- Left cheek -->
+        <ellipse cx="35" cy="58" rx="4" ry="3" fill="#1a1a2e" opacity="0.3"/>
+        <!-- Right cheek -->
+        <ellipse cx="65" cy="58" rx="4" ry="3" fill="#1a1a2e" opacity="0.3"/>
+        <!-- Hair tufts -->
+        <circle cx="26" cy="40" r="6"/>
+        <circle cx="74" cy="40" r="6"/>
+        <circle cx="30" cy="32" r="5"/>
+        <circle cx="70" cy="32" r="5"/>
+      </svg>
+    </button>
+
+    <script>
+    (function(){
+      const btn = document.getElementById('clown-chat-btn');
+      btn.addEventListener('click', () => {
+        const widget = document.querySelector('elevenlabs-convai');
+        if (!widget || !widget.shadowRoot) return;
+        const inner = widget.shadowRoot.querySelector('button') || widget.shadowRoot.querySelector('[class*="trigger"]');
+        if (inner) inner.click();
+      });
+    })();
+    </script>
 
     <!-- Auth scripts (must load before app.js) -->
     <script src="auth.js"></script>
