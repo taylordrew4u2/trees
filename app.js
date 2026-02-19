@@ -407,6 +407,34 @@ function updateTimerDisplay(totalSeconds) {
 let currentView = 'home';
 let currentParams = {};
 
+const VIEW_THEMES = {
+    home: { title: 'The Bit Binder', accent: '#7db4ff', accent2: '#4f7dff' },
+    notepad: { title: 'Notepad', accent: '#7db4ff', accent2: '#4f7dff' },
+    jokes: { title: 'Jokes', accent: '#ffb454', accent2: '#ff8f3f' },
+    setlists: { title: 'Set Lists', accent: '#b08bff', accent2: '#7c5cff' },
+    recordings: { title: 'Recordings', accent: '#ff7a7a', accent2: '#ff4d6d' },
+    notebook: { title: 'Notebook', accent: '#d2a679', accent2: '#b07a4f' },
+};
+
+function hexToRgba(hex, alpha) {
+    const clean = hex.replace('#', '');
+    const bigint = parseInt(clean, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function applyTheme(view) {
+    const theme = VIEW_THEMES[view] || VIEW_THEMES.home;
+    document.documentElement.style.setProperty('--accent', theme.accent);
+    document.documentElement.style.setProperty('--accent-2', theme.accent2);
+    document.documentElement.style.setProperty('--accent-soft', hexToRgba(theme.accent, 0.12));
+    document.documentElement.style.setProperty('--accent-shadow', hexToRgba(theme.accent, 0.35));
+    const pageTitle = document.getElementById('page-title');
+    if (pageTitle) pageTitle.textContent = theme.title;
+}
+
 function navigateTo(view, params = {}) {
     currentView = view;
     currentParams = params;
@@ -437,6 +465,13 @@ function renderView() {
         if (btn.dataset.view === currentView) btn.classList.add('active');
     });
 
+    // Update active side menu item
+    document.querySelectorAll('.side-menu-item[data-view]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === currentView);
+    });
+
+    applyTheme(currentView);
+
     // Dispatch to view-specific render function
     switch (currentView) {
         case 'home':             renderHome();                              break;
@@ -457,7 +492,7 @@ function renderView() {
 // ---------- View Renderers ----------
 
 function renderHome() {
-    document.querySelectorAll('.home-button').forEach(btn => {
+    document.querySelectorAll('.home-card, .home-button').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const view = e.currentTarget.dataset.view;
             if (view) navigateTo(view);

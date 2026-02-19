@@ -6,7 +6,7 @@
     <title>The Bit Binder</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <elevenlabs-convai agent-id="agent_7401ka31ry6qftr9ab89em3339w9"></elevenlabs-convai>
     <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
@@ -37,41 +37,75 @@
     <div id="menu-overlay" class="menu-overlay"></div>
     <nav id="side-menu" class="side-menu">
         <div class="side-menu-header">
-            <h2 class="side-menu-brand">BitBinder</h2>
-            <span class="side-menu-version">v8</span>
             <button id="close-menu-btn" class="close-menu-btn" aria-label="Close menu">&times;</button>
+            <div class="side-menu-branding">
+                <div class="brand-icon">📘</div>
+                <div>
+                    <h2 class="side-menu-brand">BitBinder</h2>
+                    <p class="side-menu-subtitle">Your comedy companion</p>
+                </div>
+            </div>
         </div>
         <div class="side-menu-items">
             <button class="side-menu-item" data-view="home" data-color="blue">
-                <span class="smi-icon">🏠</span>
-                <span class="smi-label">Home</span>
+                <span class="smi-icon-box smi-blue">🏠</span>
+                <span class="smi-labels">
+                    <span class="smi-title">Home</span>
+                    <span class="smi-sub">Overview</span>
+                </span>
+                <span class="smi-chevron">›</span>
             </button>
             <button class="side-menu-item" data-view="notepad" data-color="blue">
-                <span class="smi-icon">✏️</span>
-                <span class="smi-label">Notepad</span>
+                <span class="smi-icon-box smi-blue">✏️</span>
+                <span class="smi-labels">
+                    <span class="smi-title">Notepad</span>
+                    <span class="smi-sub">Quick writing</span>
+                </span>
+                <span class="smi-chevron">›</span>
             </button>
             <button class="side-menu-item" data-view="jokes" data-color="amber">
-                <span class="smi-icon">😄</span>
-                <span class="smi-label">Jokes</span>
+                <span class="smi-icon-box smi-amber">😄</span>
+                <span class="smi-labels">
+                    <span class="smi-title">Jokes</span>
+                    <span class="smi-sub">Library & folders</span>
+                </span>
+                <span class="smi-chevron">›</span>
             </button>
             <button class="side-menu-item" data-view="setlists" data-color="purple">
-                <span class="smi-icon">📋</span>
-                <span class="smi-label">Set Lists</span>
+                <span class="smi-icon-box smi-purple">📋</span>
+                <span class="smi-labels">
+                    <span class="smi-title">Set Lists</span>
+                    <span class="smi-sub">Curate sets</span>
+                </span>
+                <span class="smi-chevron">›</span>
             </button>
             <button class="side-menu-item" data-view="recordings" data-color="red">
-                <span class="smi-icon">🎙️</span>
-                <span class="smi-label">Recordings</span>
+                <span class="smi-icon-box smi-red">🎙️</span>
+                <span class="smi-labels">
+                    <span class="smi-title">Recordings</span>
+                    <span class="smi-sub">Performance audio</span>
+                </span>
+                <span class="smi-chevron">›</span>
             </button>
-            <button class="side-menu-item" data-view="notebook" data-color="teal">
-                <span class="smi-icon">📓</span>
-                <span class="smi-label">Notebook</span>
+            <button class="side-menu-item" data-view="notebook" data-color="brown">
+                <span class="smi-icon-box smi-brown">📓</span>
+                <span class="smi-labels">
+                    <span class="smi-title">Notebook</span>
+                    <span class="smi-sub">Photo scans</span>
+                </span>
+                <span class="smi-chevron">›</span>
             </button>
         </div>
         <div class="side-menu-footer">
             <button class="side-menu-item" id="open-settings-btn">
-                <span class="smi-icon">⚙️</span>
-                <span class="smi-label">Settings</span>
+                <span class="smi-icon-box smi-gray">⚙️</span>
+                <span class="smi-labels">
+                    <span class="smi-title">Settings</span>
+                    <span class="smi-sub">AI + data</span>
+                </span>
+                <span class="smi-chevron">›</span>
             </button>
+            <div class="side-menu-version-line">✨ v8.0</div>
         </div>
     </nav>
 
@@ -84,7 +118,18 @@
         <main id="main-content"></main>
 
         <!-- Floating Action Button -->
-        <button id="fab" class="fab" aria-label="Quick actions">+</button>
+        <button id="fab" class="fab" aria-label="Quick actions">
+            <span class="fab-glass">
+                <span class="fab-core">
+                    <svg class="fab-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                    </svg>
+                </span>
+            </span>
+        </button>
         <!-- FAB Menu -->
         <div id="fab-menu" class="fab-menu">
             <button class="fab-menu-item" data-action="add-joke">
