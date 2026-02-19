@@ -1849,19 +1849,29 @@ function escapeHTML(str) {
 window.addEventListener('load', async () => {
     initStorage();
     await openDB();
+
+    // ── Auth gate: block app until user logs in ──
+    const launchEl = document.getElementById('launch-screen');
+    const authed = initAuthGate();
+
+    // Hide launch screen after animation, then show auth gate if needed
+    setTimeout(() => {
+        if (launchEl) launchEl.style.display = 'none';
+        const gate = document.getElementById('auth-gate');
+        if (!authed && gate) gate.style.display = 'flex';
+    }, 1400);
+
+    // If not authenticated, don't init the rest yet — auth gate will reload on success
+    if (!authed) return;
+
+    // ── Authenticated: boot the app ──
     initMenuControls();
     initSettingsModal();
     initFabMenu();
     initAiModal();
     initVoiceModal();
-
-    // Failsafe: ensure launch screen doesn't block UI
-    setTimeout(() => {
-        const launch = document.getElementById('launch-screen');
-        if (launch) launch.style.display = 'none';
-        const gate = document.getElementById('password-gate');
-        if (gate && gate.style.display === 'none') gate.style.display = 'flex';
-    }, 1900);
+    initUserFilesForm();
+    renderUserFilesPanel();
 
     // Parse initial hash
     const hash = window.location.hash.slice(1) || 'home';

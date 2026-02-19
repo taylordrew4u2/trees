@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <!-- Dexie.js – IndexedDB wrapper -->
+    <script src="https://unpkg.com/dexie@3/dist/dexie.js"></script>
     <!-- ConvAI widget removed (floating purple bubble) -->
 </head>
 <body>
@@ -16,6 +18,58 @@
         <div class="launch-icon">🎤</div>
         <h1 class="launch-title">The Bit Binder</h1>
         <p class="launch-subtitle">Your comedy companion</p>
+    </div>
+
+    <!-- Auth Gate (login / register) -->
+    <div id="auth-gate" class="auth-gate" style="display:none;">
+        <div class="auth-card">
+            <div class="auth-brand">
+                <span class="auth-brand-icon">📘</span>
+                <h1 class="auth-brand-title">The Bit Binder</h1>
+                <p class="auth-brand-sub">Your comedy companion</p>
+            </div>
+
+            <!-- Login Panel -->
+            <div id="auth-login-panel">
+                <h2 class="auth-heading">Welcome Back</h2>
+                <form id="auth-login-form" class="auth-form">
+                    <div class="auth-field">
+                        <label for="auth-login-user">Username</label>
+                        <input type="text" id="auth-login-user" placeholder="username" autocomplete="username" required>
+                    </div>
+                    <div class="auth-field">
+                        <label for="auth-login-pass">Password</label>
+                        <input type="password" id="auth-login-pass" placeholder="••••••" autocomplete="current-password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary auth-submit">Log In</button>
+                </form>
+                <p id="auth-login-error" class="auth-error" style="display:none;"></p>
+                <p class="auth-switch">Don't have an account? <a href="#" id="switch-to-register">Sign up</a></p>
+            </div>
+
+            <!-- Register Panel -->
+            <div id="auth-register-panel" style="display:none;">
+                <h2 class="auth-heading">Create Account</h2>
+                <form id="auth-register-form" class="auth-form">
+                    <div class="auth-field">
+                        <label for="auth-reg-user">Username <span class="auth-hint">(3+ chars)</span></label>
+                        <input type="text" id="auth-reg-user" placeholder="pick a username" autocomplete="username" required minlength="3">
+                    </div>
+                    <div class="auth-field">
+                        <label for="auth-reg-pass">Password <span class="auth-hint">(4+ chars)</span></label>
+                        <input type="password" id="auth-reg-pass" placeholder="••••••" autocomplete="new-password" required minlength="4">
+                    </div>
+                    <div class="auth-field">
+                        <label for="auth-reg-confirm">Confirm Password</label>
+                        <input type="password" id="auth-reg-confirm" placeholder="••••••" autocomplete="new-password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary auth-submit">Create Account</button>
+                </form>
+                <p id="auth-register-error" class="auth-error" style="display:none;"></p>
+                <p id="auth-register-success" class="auth-success" style="display:none;"></p>
+                <p class="auth-switch">Already have an account? <a href="#" id="switch-to-login">Log in</a></p>
+            </div>
+        </div>
     </div>
 
 
@@ -91,6 +145,11 @@
                 </span>
                 <span class="smi-chevron">›</span>
             </button>
+            <div class="side-menu-user-row">
+                <span class="smi-icon-box smi-blue">👤</span>
+                <span id="auth-user-badge" class="auth-user-badge"></span>
+                <button id="auth-logout-btn" class="btn btn-ghost btn-sm" title="Log out">↗ Logout</button>
+            </div>
             <div class="side-menu-version-line">✨ v8.0</div>
         </div>
     </nav>
@@ -254,6 +313,21 @@
                         </div>
                     </div>
                     <input type="file" id="perm-photo-input" accept="image/*" style="display:none;">
+                </div>
+                <div class="settings-section">
+                    <h4>My Files</h4>
+                    <div id="user-files-list"></div>
+                    <form id="user-file-form" style="margin-top:12px;">
+                        <div class="form-group">
+                            <input type="text" id="uf-new-name" placeholder="File name…" required
+                                   style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text-primary);font-size:0.9rem;">
+                        </div>
+                        <div class="form-group" style="margin-top:8px;">
+                            <textarea id="uf-new-content" rows="3" placeholder="File content…"
+                                      style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text-primary);font-size:0.9rem;resize:vertical;"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm" style="margin-top:8px;">Save File</button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -580,6 +654,8 @@
 
     </div>
 
+    <!-- Auth scripts (must load before app.js) -->
+    <script src="auth.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
