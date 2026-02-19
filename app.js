@@ -8,7 +8,6 @@ const STORAGE_KEYS = {
     JOKES: 'comedy_jokes',
     SETLISTS: 'comedy_setlists',
     FOLDERS: 'comedy_folders',
-    OPENAI_KEY: 'openai_api_key',
 };
 
 // Initialize default data if empty
@@ -91,14 +90,6 @@ function deleteFolder(id) {
     // Clear folder assignment from jokes
     const jokes = getJokes().map(j => j.folderId === id ? { ...j, folderId: '' } : j);
     saveJokes(jokes);
-}
-
-function getApiKey() {
-    return localStorage.getItem(STORAGE_KEYS.OPENAI_KEY) || '';
-}
-
-function saveApiKey(key) {
-    localStorage.setItem(STORAGE_KEYS.OPENAI_KEY, key.trim());
 }
 
 // SetLists CRUD
@@ -1445,16 +1436,6 @@ function renderAiResults(jokes, container, autoAdd) {
 }
 
 async function generateAiJokes(topic, style) {
-    const key = getApiKey();
-    if (!key) return generateFallbackJokes(topic, style);
-    try {
-        const prompt = `You are a comedy writing assistant. Return a JSON array of 3 jokes. Each object should have "title" (short name) and "text" (the full joke). Topic: "${topic}". Style: "${style}".`;
-        const content = await callOpenAI(prompt, key);
-        const data = safeJsonParse(content);
-        if (Array.isArray(data)) return data;
-    } catch (err) {
-        console.error('AI error', err);
-    }
     return generateFallbackJokes(topic, style);
 }
 
@@ -1646,23 +1627,7 @@ function safeJsonParse(text) {
     return null;
 }
 
-async function callOpenAI(prompt, apiKey) {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-            model: 'gpt-4o-mini',
-            messages: [{ role: 'user', content: prompt }],
-            temperature: 0.8,
-        }),
-    });
-    if (!response.ok) throw new Error('OpenAI request failed');
-    const json = await response.json();
-    return json.choices?.[0]?.message?.content || '';
-}
+
 
 function initVoiceModal() {
     const modal = document.getElementById('voice-modal');
@@ -1743,25 +1708,7 @@ async function autoOrganizeJokes() {
         return;
     }
 
-    const key = getApiKey();
-    if (key) {
-        try {
-            const payload = jokes.map(j => ({ id: j.id, title: j.title, text: j.text || j.setup || '' }));
-            const prompt = `You are organizing jokes into folders. Return JSON array of objects with id and folder. Use 3-6 folder names. Data: ${JSON.stringify(payload)}`;
-            const content = await callOpenAI(prompt, key);
-            const data = safeJsonParse(content);
-            if (Array.isArray(data)) {
-                applyFolderAssignments(data);
-                alert('Auto-organized using AI.');
-                renderView();
-                return;
-            }
-        } catch (err) {
-            console.error('Auto-organize error', err);
-        }
-    }
-
-    // Fallback heuristic
+    // Built-in heuristic
     const assignments = jokes.map(j => ({
         id: j.id,
         folder: guessFolderFromText(`${j.title} ${j.text || j.setup || ''}`),
@@ -1802,30 +1749,7 @@ function applyFolderAssignments(assignments) {
     saveJokes(next);
 }
 
-function initApiKeyControls() {
-    const input = document.getElementById('openai-key-input');
-    const status = document.getElementById('api-status');
-    const saveBtn = document.getElementById('save-api-key-btn');
 
-    if (!input || !status || !saveBtn) return;
-
-    const refresh = () => {
-        const key = getApiKey();
-        status.textContent = key ? 'API key set — using OpenAI' : 'No API key set — using built-in engine';
-        status.classList.toggle('connected', !!key);
-        status.classList.toggle('disconnected', !key);
-        input.value = key ? '••••••••••••••••' : '';
-    };
-
-    saveBtn.addEventListener('click', () => {
-        if (input.value && !input.value.startsWith('•')) {
-            saveApiKey(input.value);
-        }
-        refresh();
-    });
-
-    refresh();
-}
 
 // ---------- Menu + Settings ----------
 function initMenuControls() {
@@ -1877,7 +1801,6 @@ function initSettingsModal() {
     });
 
     initPermissionButtons();
-    initApiKeyControls();
 }
 
 // ---------- Web Permissions (Equivalents) ----------
@@ -1994,6 +1917,7 @@ function escapeHTML(str) {
 
 // ---------- Chat Panel ----------
 function initChatPanel() {
+    const AGENT_ID = 'agent_7401ka31ry6qftr9ab89em3339w9';
     const clownBtn  = document.getElementById('clown-chat-btn');
     const panel     = document.getElementById('chat-panel');
     const closeBtn  = document.getElementById('chat-close-btn');
@@ -2005,11 +1929,88 @@ function initChatPanel() {
 
     if (!clownBtn || !panel) return;
 
-    let chatHistory = [
-        { role: 'system', content: 'You are BitBuddy, a funny clown comedy assistant. You help comedians write jokes, brainstorm material, and give feedback on bits. Keep answers concise and witty. Use humor when appropriate.' }
-    ];
+    let ws = null;
+    let conversationReady = false;
+    let pendingText = null;     // queued user message while connecting
+    let currentTypingEl = null; // "thinking..." bubble
 
-    // Toggle chat panel
+    function addMessage(text, role) {
+        const div = document.createElement('div');
+        div.className = `chat-msg chat-msg--${role}`;
+        div.textContent = text;
+        messages.appendChild(div);
+        messages.scrollTop = messages.scrollHeight;
+        return div;
+    }
+
+    // ── ElevenLabs ConvAI WebSocket ──
+    function connectAgent() {
+        if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
+        conversationReady = false;
+        ws = new WebSocket(`wss://api.elevenlabs.io/v1/convai/conversation?agent_id=${AGENT_ID}`);
+
+        ws.addEventListener('open', () => {
+            console.log('[BitBuddy] WebSocket connected');
+        });
+
+        ws.addEventListener('message', (event) => {
+            try {
+                const msg = JSON.parse(event.data);
+
+                if (msg.type === 'conversation_initiation_metadata') {
+                    conversationReady = true;
+                    // If user typed while we were connecting, send now
+                    if (pendingText) {
+                        sendToAgent(pendingText);
+                        pendingText = null;
+                    }
+                    return;
+                }
+
+                if (msg.type === 'agent_response') {
+                    const text = msg.agent_response_event?.agent_response || msg.agent_response || '';
+                    if (text) {
+                        if (currentTypingEl) { currentTypingEl.remove(); currentTypingEl = null; }
+                        addMessage(text, 'bot');
+                    }
+                    return;
+                }
+
+                if (msg.type === 'ping') {
+                    ws.send(JSON.stringify({ type: 'pong' }));
+                    return;
+                }
+            } catch (err) {
+                console.error('[BitBuddy] WS parse error', err);
+            }
+        });
+
+        ws.addEventListener('close', () => {
+            console.log('[BitBuddy] WebSocket closed');
+            conversationReady = false;
+            ws = null;
+        });
+
+        ws.addEventListener('error', (err) => {
+            console.error('[BitBuddy] WebSocket error', err);
+            if (currentTypingEl) { currentTypingEl.remove(); currentTypingEl = null; }
+            addMessage("Hmm, couldn't reach BitBuddy. Try again!", 'bot');
+            conversationReady = false;
+            ws = null;
+        });
+    }
+
+    function sendToAgent(text) {
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+            pendingText = text;
+            connectAgent();
+            return;
+        }
+        // Send text message to the ElevenLabs agent
+        ws.send(JSON.stringify({ user_text: text }));
+    }
+
+    // ── UI Controls ──
     clownBtn.addEventListener('click', () => {
         const isOpen = panel.classList.contains('open');
         if (isOpen) {
@@ -2017,6 +2018,7 @@ function initChatPanel() {
         } else {
             panel.classList.add('open');
             if (widget) widget.classList.remove('voice-active');
+            if (!ws) connectAgent();
             input.focus();
         }
     });
@@ -2029,23 +2031,13 @@ function initChatPanel() {
     voiceBtn.addEventListener('click', () => {
         if (widget) {
             widget.classList.toggle('voice-active');
-            // Try to click the widget's internal button
             const shadowBtn = widget.shadowRoot?.querySelector('button');
             if (shadowBtn) shadowBtn.click();
         }
     });
 
-    function addMessage(text, role) {
-        const div = document.createElement('div');
-        div.className = `chat-msg chat-msg--${role}`;
-        div.textContent = text;
-        messages.appendChild(div);
-        messages.scrollTop = messages.scrollHeight;
-        return div;
-    }
-
     // Send message
-    form.addEventListener('submit', async (e) => {
+    form.addEventListener('submit', (e) => {
         e.preventDefault();
         const text = input.value.trim();
         if (!text) return;
@@ -2053,55 +2045,8 @@ function initChatPanel() {
         addMessage(text, 'user');
         input.value = '';
 
-        chatHistory.push({ role: 'user', content: text });
-
-        const typingEl = addMessage('thinking...', 'typing');
-
-        const key = getApiKey();
-        let reply = '';
-        if (key) {
-            try {
-                const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${key}`,
-                    },
-                    body: JSON.stringify({
-                        model: 'gpt-4o-mini',
-                        messages: chatHistory,
-                        temperature: 0.9,
-                        max_tokens: 300,
-                    }),
-                });
-                if (response.ok) {
-                    const json = await response.json();
-                    reply = json.choices?.[0]?.message?.content || '';
-                }
-            } catch (err) {
-                console.error('Chat error', err);
-            }
-        }
-
-        if (!reply) {
-            // Fallback responses when no API key
-            const fallbacks = [
-                "Add your OpenAI key in Settings to unlock my full brain! 🧠",
-                "I'm funnier with an API key... hint hint! 🤡",
-                "My comedy circuits need an API key to boot up! ⚡",
-                "Set up an OpenAI key in ⚙️ Settings and I'll be your writing partner!",
-            ];
-            reply = fallbacks[Math.floor(Math.random() * fallbacks.length)];
-        }
-
-        typingEl.remove();
-        addMessage(reply, 'bot');
-        chatHistory.push({ role: 'assistant', content: reply });
-
-        // Keep history reasonable
-        if (chatHistory.length > 20) {
-            chatHistory = [chatHistory[0], ...chatHistory.slice(-10)];
-        }
+        currentTypingEl = addMessage('thinking...', 'typing');
+        sendToAgent(text);
     });
 }
 
