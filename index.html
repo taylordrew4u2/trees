@@ -3,44 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
-    <title>Comedy Set Organizer</title>
+    <title>The Bit Binder</title>
     <link rel="stylesheet" href="style.css">
     <!-- ElevenLabs Conversational AI Widget -->
     <elevenlabs-convai agent-id="agent_7401ka31ry6qftr9ab89em3339w9"></elevenlabs-convai>
     <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
 </head>
 <body>
+    <!-- Launch Screen -->
+    <div id="launch-screen">
+        <div class="launch-content">
+            <div class="launch-icon">🎤</div>
+            <h1 class="launch-title">The Bit Binder</h1>
+            <p class="launch-subtitle">Your comedy companion</p>
+        </div>
+    </div>
+
     <!-- Password Gate -->
-    <div id="password-gate">
+    <div id="password-gate" style="display:none;">
         <div class="password-card">
             <div class="password-icon">🎤</div>
-            <h1>Comedy Set Organizer</h1>
+            <h1>The Bit Binder</h1>
             <p>Enter password to continue</p>
             <form id="password-form">
-                <input type="password" id="password-input" placeholder="Password" autocomplete="current-password" autofocus>
+                <input type="password" id="password-input" placeholder="Password" autocomplete="current-password">
                 <button type="submit" class="btn-primary">Enter</button>
             </form>
             <p id="password-error" class="password-error" style="display:none;">Incorrect password. Try again.</p>
         </div>
     </div>
 
+    <!-- Side Menu Overlay -->
+    <div id="side-menu-overlay" class="side-menu-overlay"></div>
+
+    <!-- Glassmorphic Side Menu -->
+    <div id="side-menu" class="side-menu">
+        <div class="side-menu-header">
+            <h2 class="side-menu-brand">BitBinder</h2>
+            <span class="side-menu-version">v8.0</span>
+            <button id="close-menu-btn" class="close-menu-btn" aria-label="Close menu">&times;</button>
+        </div>
+        <div class="side-menu-items">
+            <button class="side-menu-item" data-view="notepad" data-color="blue">
+                <span class="smi-icon">✏️</span>
+                <span class="smi-label">Notepad</span>
+                <span class="smi-desc">Quick joke writing</span>
+            </button>
+            <button class="side-menu-item" data-view="jokes" data-color="orange">
+                <span class="smi-icon">😄</span>
+                <span class="smi-label">Jokes</span>
+                <span class="smi-desc">Joke library &amp; folders</span>
+            </button>
+            <button class="side-menu-item" data-view="setlists" data-color="purple">
+                <span class="smi-icon">📋</span>
+                <span class="smi-label">Set Lists</span>
+                <span class="smi-desc">Curate comedy sets</span>
+            </button>
+            <button class="side-menu-item" data-view="recordings" data-color="red">
+                <span class="smi-icon">🎙️</span>
+                <span class="smi-label">Recordings</span>
+                <span class="smi-desc">Audio recordings</span>
+            </button>
+            <button class="side-menu-item" data-view="notebook" data-color="brown">
+                <span class="smi-icon">📓</span>
+                <span class="smi-label">Notebook</span>
+                <span class="smi-desc">Photo-based notebook</span>
+            </button>
+        </div>
+    </div>
+
     <div id="app" style="display:none;">
         <header>
-            <h1>Comedy Set Organizer</h1>
+            <h1>The Bit Binder</h1>
             <nav>
-                <button data-view="home">Home</button>
+                <button data-view="notepad">Notepad</button>
                 <button data-view="jokes">Jokes</button>
                 <button data-view="setlists">Set Lists</button>
                 <button data-view="recordings">Recordings</button>
-                <button data-view="notepad">Notepad</button>
                 <button data-view="notebook">Notebook</button>
-                <button data-view="create-setlist">+ New Set</button>
             </nav>
         </header>
 
         <main id="main-content">
             <!-- Views are dynamically loaded here -->
         </main>
+
+        <!-- Floating Menu Button -->
+        <button id="floating-menu-btn" class="floating-menu-btn" aria-label="Open menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+            </svg>
+        </button>
     </div>
 
     <!-- Templates for views (hidden) -->
@@ -48,35 +104,40 @@
         <!-- Home view -->
         <div id="home-view" class="view">
             <div class="home-buttons">
-                <button class="home-button" data-view="jokes">
-                    <span class="icon">📝</span>
-                    <span class="title">Jokes</span>
-                    <span class="subtitle">Manage your joke library</span>
+                <button class="home-button home-button--blue" data-view="notepad">
+                    <span class="icon">✏️</span>
+                    <div>
+                        <span class="title">Notepad</span>
+                        <span class="subtitle">Quick joke writing</span>
+                    </div>
                 </button>
-                <button class="home-button" data-view="create-setlist">
-                    <span class="icon">➕</span>
-                    <span class="title">Create Set List</span>
-                    <span class="subtitle">Build a new performance set</span>
+                <button class="home-button home-button--orange" data-view="jokes">
+                    <span class="icon">😄</span>
+                    <div>
+                        <span class="title">Jokes</span>
+                        <span class="subtitle">Manage your joke library</span>
+                    </div>
                 </button>
-                <button class="home-button" data-view="setlists">
+                <button class="home-button home-button--purple" data-view="setlists">
                     <span class="icon">📋</span>
-                    <span class="title">Set Lists</span>
-                    <span class="subtitle">Your saved performance sets</span>
+                    <div>
+                        <span class="title">Set Lists</span>
+                        <span class="subtitle">Curate comedy sets</span>
+                    </div>
                 </button>
-                <button class="home-button" data-view="recordings">
-                    <span class="icon">🎤</span>
-                    <span class="title">Recordings</span>
-                    <span class="subtitle">Review your performances</span>
+                <button class="home-button home-button--red" data-view="recordings">
+                    <span class="icon">🎙️</span>
+                    <div>
+                        <span class="title">Recordings</span>
+                        <span class="subtitle">Record performances</span>
+                    </div>
                 </button>
-                <button class="home-button" data-view="notepad">
+                <button class="home-button home-button--brown" data-view="notebook">
                     <span class="icon">📓</span>
-                    <span class="title">Notepad</span>
-                    <span class="subtitle">Capture ideas &amp; export to jokes</span>
-                </button>
-                <button class="home-button" data-view="notebook">
-                    <span class="icon">📔</span>
-                    <span class="title">Notebook</span>
-                    <span class="subtitle">Save comedy notes &amp; observations</span>
+                    <div>
+                        <span class="title">Notebook</span>
+                        <span class="subtitle">Photo-based notebook</span>
+                    </div>
                 </button>
             </div>
         </div>
@@ -85,7 +146,14 @@
         <div id="jokes-view" class="view">
             <div class="view-header">
                 <h2>Jokes</h2>
-                <button id="add-joke-btn" class="btn-primary">+ Add Joke</button>
+                <div class="view-header-actions">
+                    <button id="manage-folders-btn" class="btn-secondary">📁 Folders</button>
+                    <button id="add-joke-btn" class="btn-primary">+ Add Joke</button>
+                </div>
+            </div>
+            <!-- Folder bar -->
+            <div class="folder-bar" id="folder-bar">
+                <button class="folder-chip active" data-folder="">All Jokes</button>
             </div>
             <div class="search-bar">
                 <input type="text" id="joke-search" placeholder="Search jokes..." aria-label="Search jokes">
@@ -132,6 +200,12 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    <label for="joke-folder">Folder</label>
+                    <select id="joke-folder">
+                        <option value="">No folder</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label>Rating</label>
                     <div class="star-rating" id="joke-rating" role="group" aria-label="Joke rating">
                         <button type="button" class="star" data-value="1">★</button>
@@ -168,6 +242,22 @@
                     <button type="button" id="delete-joke-btn" class="btn-danger" style="display:none;">Delete</button>
                 </div>
             </form>
+        </div>
+
+        <!-- Joke Folders Manager view -->
+        <div id="joke-folders-view" class="view">
+            <div class="view-header">
+                <h2>Joke Folders</h2>
+                <button id="back-from-folders" class="btn-secondary">Back</button>
+            </div>
+            <div class="form-group" style="margin-top:16px;">
+                <label for="new-folder-name">Create Folder</label>
+                <div class="inline-form">
+                    <input type="text" id="new-folder-name" maxlength="40" placeholder="Folder name...">
+                    <button id="create-folder-btn" class="btn-primary">Create</button>
+                </div>
+            </div>
+            <div id="folders-list" class="list" style="margin-top:16px;"></div>
         </div>
 
         <!-- Set Lists view -->
@@ -287,7 +377,7 @@
             </div>
         </div>
 
-        <!-- Notebook view -->
+        <!-- Notebook view (photo-based) -->
         <div id="notebook-view" class="view">
             <div class="view-header">
                 <h2>Notebook</h2>
@@ -299,7 +389,7 @@
             <div id="notebook-list" class="list"></div>
         </div>
 
-        <!-- Notebook Entry view -->
+        <!-- Notebook Entry view (photo-based) -->
         <div id="notebook-entry-view" class="view">
             <div class="view-header">
                 <h2 id="notebook-entry-form-title">New Entry</h2>
@@ -311,8 +401,17 @@
                     <input type="text" id="entry-title" maxlength="60" placeholder="Entry title..." required>
                 </div>
                 <div class="form-group">
-                    <label for="entry-content">Content</label>
-                    <textarea id="entry-content" rows="12" placeholder="Write your observation, bit, or note..."></textarea>
+                    <label>Photos</label>
+                    <div class="photo-upload-area" id="photo-upload-area">
+                        <input type="file" id="photo-input" accept="image/*" capture="environment" multiple style="display:none;">
+                        <button type="button" id="take-photo-btn" class="btn-secondary">📷 Take Photo</button>
+                        <button type="button" id="import-photo-btn" class="btn-secondary">🖼️ Import Photo</button>
+                    </div>
+                    <div id="photo-previews" class="photo-previews"></div>
+                </div>
+                <div class="form-group">
+                    <label for="entry-content">Notes</label>
+                    <textarea id="entry-content" rows="8" placeholder="Write your observation, bit, or note..."></textarea>
                 </div>
                 <div class="form-actions">
                     <button type="submit" class="btn-primary">Save</button>
