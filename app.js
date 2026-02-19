@@ -1893,6 +1893,14 @@ window.addEventListener('load', async () => {
     initAiModal();
     initVoiceModal();
 
+    // Failsafe: ensure launch screen doesn't block UI
+    setTimeout(() => {
+        const launch = document.getElementById('launch-screen');
+        if (launch) launch.style.display = 'none';
+        const gate = document.getElementById('password-gate');
+        if (gate && gate.style.display === 'none') gate.style.display = 'flex';
+    }, 1900);
+
     // Parse initial hash
     const hash = window.location.hash.slice(1) || 'home';
     const [view, id] = hash.split('/');

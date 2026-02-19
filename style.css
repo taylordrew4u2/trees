@@ -87,9 +87,8 @@ input, textarea, select { font-family: inherit; }
   position: fixed; inset: 0; z-index: 9999;
   background: var(--bg-base);
   display: flex; align-items: center; justify-content: center;
-  padding: 24px; opacity: 0; animation: pgFadeIn 0.3s 2s forwards;
+  padding: 24px; opacity: 1;
 }
-@keyframes pgFadeIn { to { opacity: 1; } }
 .password-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border-light);
