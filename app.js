@@ -1844,47 +1844,9 @@ function escapeHTML(str) {
         .replace(/'/g, '&#39;');
 }
 
-// ---------- Password Gate ----------
-const CORRECT_PASSWORD = '69240';
-
-function initPasswordGate() {
-    // Already authenticated this session?
-    if (sessionStorage.getItem('comedy_auth') === '1') {
-        unlockApp();
-        return;
-    }
-
-    const gate       = document.getElementById('password-gate');
-    const form       = document.getElementById('password-form');
-    const input      = document.getElementById('password-input');
-    const errorMsg   = document.getElementById('password-error');
-
-    gate.style.display = 'flex';
-
-    form.addEventListener('submit', e => {
-        e.preventDefault();
-        if (input.value === CORRECT_PASSWORD) {
-            sessionStorage.setItem('comedy_auth', '1');
-            gate.style.animation = 'fadeOut 0.25s forwards';
-            setTimeout(unlockApp, 250);
-        } else {
-            errorMsg.style.display = 'block';
-            input.value = '';
-            input.classList.add('input-error');
-            setTimeout(() => input.classList.remove('input-error'), 400);
-            input.focus();
-        }
-    });
-}
-
-function unlockApp() {
-    document.getElementById('password-gate').style.display = 'none';
-    document.getElementById('app').style.display = 'flex';
-}
 
 // ---------- Bootstrap ----------
 window.addEventListener('load', async () => {
-    initPasswordGate();
     initStorage();
     await openDB();
     initMenuControls();
