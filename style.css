@@ -718,6 +718,164 @@ main {
     margin-top: 8px;
 }
 
+/* Filter / sort bar */
+.filter-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+.filter-bar select,
+.filter-bar input {
+    flex: 1 1 120px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.filter-bar select:focus,
+.filter-bar input:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Two-column form row */
+.form-row {
+    display: flex;
+    gap: 16px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+/* Star rating */
+.star-rating {
+    display: flex;
+    gap: 4px;
+}
+
+.star-rating .star {
+    background: none;
+    border: none;
+    font-size: 1.6rem;
+    cursor: pointer;
+    color: var(--border);
+    padding: 0;
+    min-height: auto;
+    min-width: auto;
+    line-height: 1;
+    transition: color 0.15s, transform 0.1s;
+}
+
+.star-rating .star.active,
+.star-rating .star:hover {
+    color: #ff9f0a;
+}
+
+.star-rating .star:active {
+    transform: scale(1.2);
+}
+
+/* Joke status badge */
+.joke-status {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+.joke-status--idea        { background: rgba(0,122,255,0.12);   color: #007aff; }
+.joke-status--draft       { background: rgba(255,159,10,0.12);  color: #c87000; }
+.joke-status--stage-ready { background: rgba(52,199,89,0.15);   color: #1a7032; }
+.joke-status--retired     { background: rgba(110,110,115,0.12); color: var(--text-secondary); }
+
+@media (prefers-color-scheme: dark) {
+    .joke-status--idea        { color: #409cff; }
+    .joke-status--draft       { color: #ff9f0a; }
+    .joke-status--stage-ready { color: #34c759; }
+}
+
+/* Joke rating in list */
+.joke-rating-stars {
+    color: #ff9f0a;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+}
+
+.list-item small {
+    display: block;
+    margin-top: 4px;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+/* Notepad */
+.notepad-hint {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+}
+
+.notepad-textarea {
+    width: 100%;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 1rem;
+    line-height: 1.6;
+    resize: vertical;
+    min-height: 280px;
+    font-family: inherit;
+}
+
+.notepad-textarea:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.notepad-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+}
+
+/* Notebook */
+#notebook-list h3,
+#notebook-list .date-group {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 20px 0 6px;
+}
+
+/* AI context panel indicator */
+.ai-context-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(0,122,255,0.1);
+    border: 1px solid rgba(0,122,255,0.25);
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
 /* Accessibility: increase tap targets */
 button, .home-button, .list-item, .joke-item {
     min-height: 44px;
@@ -728,5 +886,14 @@ button, .home-button, .list-item, .joke-item {
 @media (min-width: 600px) {
     .home-buttons {
         grid-template-columns: repeat(2, 1fr);
+    }
+    .form-row {
+        flex-wrap: nowrap;
+    }
+}
+
+@media (max-width: 599px) {
+    .form-row {
+        flex-direction: column;
     }
 }

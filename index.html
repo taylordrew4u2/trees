@@ -32,6 +32,8 @@
                 <button data-view="jokes">Jokes</button>
                 <button data-view="setlists">Set Lists</button>
                 <button data-view="recordings">Recordings</button>
+                <button data-view="notepad">Notepad</button>
+                <button data-view="notebook">Notebook</button>
                 <button data-view="create-setlist">+ New Set</button>
             </nav>
         </header>
@@ -66,6 +68,16 @@
                     <span class="title">Recordings</span>
                     <span class="subtitle">Review your performances</span>
                 </button>
+                <button class="home-button" data-view="notepad">
+                    <span class="icon">📓</span>
+                    <span class="title">Notepad</span>
+                    <span class="subtitle">Capture ideas &amp; export to jokes</span>
+                </button>
+                <button class="home-button" data-view="notebook">
+                    <span class="icon">📔</span>
+                    <span class="title">Notebook</span>
+                    <span class="subtitle">Save comedy notes &amp; observations</span>
+                </button>
             </div>
         </div>
 
@@ -78,6 +90,22 @@
             <div class="search-bar">
                 <input type="text" id="joke-search" placeholder="Search jokes..." aria-label="Search jokes">
             </div>
+            <div class="filter-bar">
+                <select id="joke-sort" aria-label="Sort jokes">
+                    <option value="newest">Newest first</option>
+                    <option value="oldest">Oldest first</option>
+                    <option value="title">Title A–Z</option>
+                    <option value="rating">Highest rated</option>
+                </select>
+                <select id="joke-filter-status" aria-label="Filter by status">
+                    <option value="">All Statuses</option>
+                    <option value="idea">💡 Idea</option>
+                    <option value="draft">✏️ Draft</option>
+                    <option value="stage-ready">🎤 Stage Ready</option>
+                    <option value="retired">📦 Retired</option>
+                </select>
+                <input type="text" id="joke-filter-category" placeholder="Category filter..." aria-label="Filter by category">
+            </div>
             <div id="jokes-list" class="list"></div>
         </div>
 
@@ -88,13 +116,52 @@
                 <button id="cancel-joke-btn" class="btn-secondary">Cancel</button>
             </div>
             <form id="joke-form">
-                <div class="form-group">
-                    <label for="joke-title">Title (1-20 chars)</label>
-                    <input type="text" id="joke-title" maxlength="20" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="joke-title">Title (1-20 chars)</label>
+                        <input type="text" id="joke-title" maxlength="20" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="joke-status">Status</label>
+                        <select id="joke-status">
+                            <option value="idea">💡 Idea</option>
+                            <option value="draft">✏️ Draft</option>
+                            <option value="stage-ready">🎤 Stage Ready</option>
+                            <option value="retired">📦 Retired</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="form-group">
-                    <label for="joke-body">Body</label>
-                    <textarea id="joke-body" rows="6"></textarea>
+                    <label>Rating</label>
+                    <div class="star-rating" id="joke-rating" role="group" aria-label="Joke rating">
+                        <button type="button" class="star" data-value="1">★</button>
+                        <button type="button" class="star" data-value="2">★</button>
+                        <button type="button" class="star" data-value="3">★</button>
+                        <button type="button" class="star" data-value="4">★</button>
+                        <button type="button" class="star" data-value="5">★</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="joke-setup">Setup</label>
+                    <textarea id="joke-setup" rows="3" placeholder="The setup of the joke..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="joke-punchline">Punchline</label>
+                    <textarea id="joke-punchline" rows="2" placeholder="The punchline..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="joke-body">Notes</label>
+                    <textarea id="joke-body" rows="4" placeholder="Additional notes, variations, context..."></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="joke-category">Category</label>
+                        <input type="text" id="joke-category" maxlength="30" placeholder="e.g. Observational">
+                    </div>
+                    <div class="form-group">
+                        <label for="joke-tags">Tags (comma-separated)</label>
+                        <input type="text" id="joke-tags" placeholder="e.g. dark, callback">
+                    </div>
                 </div>
                 <div class="form-actions">
                     <button type="submit" class="btn-primary">Save</button>
@@ -205,6 +272,53 @@
                 <h3>Set List Order</h3>
                 <ul id="recording-setlist-jokes"></ul>
             </div>
+        </div>
+
+        <!-- Notepad view -->
+        <div id="notepad-view" class="view">
+            <div class="view-header">
+                <h2>Notepad</h2>
+                <button id="export-to-joke-btn" class="btn-secondary">➕ Export to Joke</button>
+            </div>
+            <p class="notepad-hint">Brain-dump your ideas here. Auto-saves as you type.</p>
+            <textarea id="notepad-text" class="notepad-textarea" rows="16" placeholder="Write anything here — premises, observations, one-liners..."></textarea>
+            <div class="notepad-actions">
+                <button id="clear-notepad-btn" class="btn-danger">Clear</button>
+            </div>
+        </div>
+
+        <!-- Notebook view -->
+        <div id="notebook-view" class="view">
+            <div class="view-header">
+                <h2>Notebook</h2>
+                <button id="add-notebook-entry-btn" class="btn-primary">+ New Entry</button>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="notebook-search" placeholder="Search entries..." aria-label="Search notebook">
+            </div>
+            <div id="notebook-list" class="list"></div>
+        </div>
+
+        <!-- Notebook Entry view -->
+        <div id="notebook-entry-view" class="view">
+            <div class="view-header">
+                <h2 id="notebook-entry-form-title">New Entry</h2>
+                <button id="cancel-notebook-entry-btn" class="btn-secondary">Back</button>
+            </div>
+            <form id="notebook-entry-form">
+                <div class="form-group">
+                    <label for="entry-title">Title</label>
+                    <input type="text" id="entry-title" maxlength="60" placeholder="Entry title..." required>
+                </div>
+                <div class="form-group">
+                    <label for="entry-content">Content</label>
+                    <textarea id="entry-content" rows="12" placeholder="Write your observation, bit, or note..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Save</button>
+                    <button type="button" id="delete-notebook-entry-btn" class="btn-danger" style="display:none;">Delete</button>
+                </div>
+            </form>
         </div>
     </div>
 
