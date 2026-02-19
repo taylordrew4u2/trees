@@ -892,15 +892,11 @@ button, .list-item { min-height: 44px; }
 
 /* ----------  Floating Clown Chat Button  ---------- */
 elevenlabs-convai {
-  /* hide the default purple bubble */
+  /* let the widget render its own trigger button at bottom-right */
   position: fixed !important;
-  bottom: 20px !important;
-  right: 20px !important;
-  width: 0 !important;
-  height: 0 !important;
-  overflow: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  z-index: 9998 !important;
 }
 .clown-chat-btn {
   position: fixed;
@@ -913,29 +909,17 @@ elevenlabs-convai {
   border: none;
   background: #d62828;
   color: #d62828;
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(214,40,40,0.45);
+  pointer-events: none;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 10px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.clown-chat-btn {
+  box-shadow: 0 4px 16px rgba(214,40,40,0.45);
   animation: clownFloat 3s ease-in-out infinite;
 }
 @keyframes clownFloat {
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-10px); }
-}
-.clown-chat-btn:hover {
-  animation: none;
-  transform: scale(1.1);
-  box-shadow: 0 6px 22px rgba(214,40,40,0.6);
-}
-.clown-chat-btn:active {
-  animation: none;
-  transform: scale(0.95);
 }
 .clown-chat-btn svg {
   width: 100%;
