@@ -304,7 +304,29 @@ async function startRecording() {
         stopBtn.style.display = 'inline-block';
     } catch (err) {
         console.error('Microphone error:', err);
-        alert('Microphone access is required. Please allow microphone access in your browser settings.');
+        let alertMsg;
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+            showMicStatus('denied', '🚫 Microphone access was denied. To enable it:', [
+                'Click the 🔒 lock icon in your browser address bar',
+                'Find "Microphone" and set it to Allow',
+                'Refresh this page and try again',
+            ]);
+            alertMsg = 'Microphone access was denied.\n\nTo fix this:\n' +
+                '1. Click the 🔒 icon in your browser address bar\n' +
+                '2. Set Microphone to "Allow"\n' +
+                '3. Refresh the page and try again.';
+        } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+            showMicStatus('denied', '🎙️ No microphone detected. Please connect a microphone and try again.');
+            alertMsg = 'No microphone was found. Please connect a microphone and try again.';
+        } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+            showMicStatus('denied', '🎙️ Microphone is in use by another app. Close other apps and try again.');
+            alertMsg = 'Your microphone is in use by another application. Close it and try again.';
+        } else {
+            showMicStatus('denied', '🚫 Could not access microphone: ' + err.message);
+            alertMsg = 'Could not access microphone: ' + err.message;
+        }
+        if (startBtn) startBtn.disabled = false; // let them retry
+        alert(alertMsg);
     }
 }
 
@@ -796,7 +818,7 @@ async function renderRecordingDetail(id) {
     });
 }
 
-function renderRecordSet(setListId) {
+async function renderRecordSet(setListId) {
     const setList = getSetLists().find(s => s.id === setListId);
     if (!setList) { navigateTo('setlists'); return; }
 
@@ -824,6 +846,56 @@ function renderRecordSet(setListId) {
 
     setupRecordingUI();
     resetRecordingUI();
+    await checkMicPermission();
+}
+
+// ---------- Microphone Permission Helpers ----------
+
+function showMicStatus(type, message, steps) {
+    const el = document.getElementById('mic-status');
+    if (!el) return;
+    el.className = `mic-status mic-status--${type}`;
+    el.innerHTML = escapeHTML(message) +
+        (steps ? `<ul class="mic-fix-steps">${steps.map(s => `<li>${escapeHTML(s)}</li>`).join('')}</ul>` : '');
+}
+
+function applyMicPermissionState(state) {
+    if (state === 'granted') {
+        showMicStatus('granted', '🎙️ Microphone ready');
+        if (startBtn) startBtn.disabled = false;
+    } else if (state === 'denied') {
+        showMicStatus('denied', '🚫 Microphone access is blocked. To enable it:', [
+            'Click the 🔒 lock icon in your browser address bar',
+            'Find "Microphone" and set it to Allow',
+            'Refresh this page and try again',
+        ]);
+        if (startBtn) startBtn.disabled = true;
+    } else {
+        // 'prompt' – user hasn't decided yet
+        showMicStatus('prompt', '🎙️ Tap Start — your browser will ask for microphone permission.');
+        if (startBtn) startBtn.disabled = false;
+    }
+}
+
+async function checkMicPermission() {
+    // Check if MediaRecorder is available at all
+    if (!window.MediaRecorder || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showMicStatus('denied', '🚫 Audio recording is not supported in this browser.', [
+            'Use Chrome, Edge, Firefox, or Safari 14.1+',
+        ]);
+        if (startBtn) startBtn.disabled = true;
+        return;
+    }
+
+    try {
+        const perm = await navigator.permissions.query({ name: 'microphone' });
+        applyMicPermissionState(perm.state);
+        // React to user granting/revoking permission live
+        perm.onchange = () => applyMicPermissionState(perm.state);
+    } catch {
+        // Permissions API not available (some Safari versions) — show neutral hint
+        showMicStatus('prompt', '🎙️ Tap Start — your browser will ask for microphone permission.');
+    }
 }
 
 // ---------- Utility ----------
