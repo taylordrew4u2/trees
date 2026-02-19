@@ -1,7 +1,9 @@
-// auth.js – User Authentication & File Storage System (Dexie.js / IndexedDB)
+// auth.js – User Authentication & File Storage System
 // ────────────────────────────────────────────────────────────────────────────
-// Local-first approach: all data lives on the user's device in IndexedDB.
-// Each browser tab maintains its own session via sessionStorage.
+// Hybrid approach: Firebase Auth for cloud authentication + Dexie/IndexedDB
+// for local data.  When Firebase is configured, registration and login go
+// through Firebase Auth (email/password).  The local Dexie DB is kept as a
+// fallback and for local-only features (user files, jokebook).
 // ────────────────────────────────────────────────────────────────────────────
 
 // ─── Database Setup ─────────────────────────────────────────────────────────
@@ -77,11 +79,29 @@ async function registerUser(username, password) {
     if (trimmed.length < 3) throw new Error('Username must be at least 3 characters.');
     if (!password || password.length < 4) throw new Error('Password must be at least 4 characters.');
 
-    // Check uniqueness via the &username index
+    // ── Firebase Auth path ──
+    if (typeof fbAuth !== 'undefined' && isFirebaseConfigured()) {
+        // Treat the username as an email, or append a domain if it isn't one
+        const email = trimmed.includes('@') ? trimmed : `${trimmed}@bitbinder.app`;
+        try {
+            const cred = await fbAuth.createUserWithEmailAndPassword(email, password);
+            // Optionally set displayName to the original username
+            await cred.user.updateProfile({ displayName: trimmed.split('@')[0] });
+            console.log('[Auth] Firebase user created:', cred.user.uid);
+            return cred.user.uid;
+        } catch (fbErr) {
+            // Map Firebase error codes to friendly messages
+            if (fbErr.code === 'auth/email-already-in-use') throw new Error('Username already taken.');
+            if (fbErr.code === 'auth/weak-password')        throw new Error('Password is too weak (6+ chars for Firebase).');
+            if (fbErr.code === 'auth/invalid-email')        throw new Error('Invalid username/email format.');
+            throw new Error(fbErr.message);
+        }
+    }
+
+    // ── Fallback: local Dexie registration ──
     const existing = await userDB.users.where('username').equals(trimmed).first();
     if (existing)   throw new Error('Username already taken.');
 
-    // Hash the password before storing (never store plaintext)
     const hashedPassword = await hashPassword(password);
 
     const id = await userDB.users.add({
@@ -90,7 +110,7 @@ async function registerUser(username, password) {
         createdAt: new Date().toISOString()
     });
 
-    return id;   // Return the auto-generated user ID
+    return id;
 }
 
 // ─── User Login ─────────────────────────────────────────────────────────────
@@ -98,13 +118,34 @@ async function registerUser(username, password) {
 
 async function loginUser(username, password) {
     const trimmed = username.trim().toLowerCase();
+
+    // ── Firebase Auth path ──
+    if (typeof fbAuth !== 'undefined' && isFirebaseConfigured()) {
+        const email = trimmed.includes('@') ? trimmed : `${trimmed}@bitbinder.app`;
+        try {
+            const cred = await fbAuth.signInWithEmailAndPassword(email, password);
+            // Store in sessionStorage so existing helpers work seamlessly
+            sessionStorage.setItem('currentUserId', cred.user.uid);
+            sessionStorage.setItem('currentUsername', cred.user.displayName || trimmed.split('@')[0]);
+            console.log('[Auth] Firebase login success:', cred.user.uid);
+            return { id: cred.user.uid, username: cred.user.displayName || trimmed.split('@')[0] };
+        } catch (fbErr) {
+            if (fbErr.code === 'auth/user-not-found')    throw new Error('User not found.');
+            if (fbErr.code === 'auth/wrong-password')    throw new Error('Incorrect password.');
+            if (fbErr.code === 'auth/invalid-credential') throw new Error('Invalid email or password.');
+            if (fbErr.code === 'auth/invalid-email')     throw new Error('Invalid username/email format.');
+            if (fbErr.code === 'auth/too-many-requests')  throw new Error('Too many attempts. Try again later.');
+            throw new Error(fbErr.message);
+        }
+    }
+
+    // ── Fallback: local Dexie login ──
     const user = await userDB.users.where('username').equals(trimmed).first();
     if (!user) throw new Error('User not found.');
 
     const valid = await verifyPassword(password, user.password);
     if (!valid) throw new Error('Incorrect password.');
 
-    // Persist session for this tab
     sessionStorage.setItem('currentUserId', user.id);
     sessionStorage.setItem('currentUsername', user.username);
     return user;
@@ -113,6 +154,10 @@ async function loginUser(username, password) {
 // ─── Logout ─────────────────────────────────────────────────────────────────
 
 function logoutUser() {
+    // Sign out of Firebase if available
+    if (typeof fbAuth !== 'undefined' && isFirebaseConfigured()) {
+        fbAuth.signOut().catch(err => console.warn('[Auth] Firebase sign-out error:', err));
+    }
     sessionStorage.removeItem('currentUserId');
     sessionStorage.removeItem('currentUsername');
 }
@@ -120,11 +165,23 @@ function logoutUser() {
 // ─── Session Helpers ────────────────────────────────────────────────────────
 
 function getCurrentUserId() {
+    // Check Firebase first
+    if (typeof fbAuth !== 'undefined' && fbAuth.currentUser) {
+        return fbAuth.currentUser.uid;
+    }
+    // Fallback to sessionStorage (works for both Firebase-stored UIDs and Dexie IDs)
     const id = sessionStorage.getItem('currentUserId');
-    return id ? Number(id) : null;
+    if (!id) return null;
+    // Return as number only if it's a pure Dexie numeric ID
+    const num = Number(id);
+    return isNaN(num) ? id : num;
 }
 
 function getCurrentUsername() {
+    // Check Firebase first
+    if (typeof fbAuth !== 'undefined' && fbAuth.currentUser) {
+        return fbAuth.currentUser.displayName || fbAuth.currentUser.email;
+    }
     return sessionStorage.getItem('currentUsername') || null;
 }
 

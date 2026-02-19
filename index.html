@@ -11,6 +11,13 @@
     <!-- Dexie.js – IndexedDB wrapper -->
     <script src="https://unpkg.com/dexie@3/dist/dexie.js"></script>
     <script src="https://elevenlabs.io/convai-widget/index.js" async type="text/javascript"></script>
+
+    <!-- Firebase SDK (compat builds for vanilla JS) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 </head>
 <body>
     <!-- Launch Screen -->
@@ -663,6 +670,8 @@
       </svg>
     </button>
 
+    <!-- Firebase config (must load after SDK, before auth/app) -->
+    <script src="firebase-config.js"></script>
     <!-- Auth scripts (must load before app.js) -->
     <script src="auth.js"></script>
     <script src="app.js"></script>
