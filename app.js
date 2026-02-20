@@ -2017,6 +2017,7 @@ function escapeHTML(str) {
 // ---------- Chat Panel ----------
 function initChatPanel() {
     const AGENT_ID = 'agent_7401ka31ry6qftr9ab89em3339w9';
+    const TOOL_INSTRUCTION = "When you decide a joke should be stored, respond with a JSON code block only in this format:\n```json\n{\"name\":\"add_joke\",\"parameters\":{\"text\":\"...\",\"tags\":[\"...\"]}}\n```\nOtherwise reply normally.";
     const clownBtn  = document.getElementById('clown-chat-btn');
     const panel     = document.getElementById('chat-panel');
     const closeBtn  = document.getElementById('chat-close-btn');
@@ -2032,6 +2033,7 @@ function initChatPanel() {
     let conversationReady = false;
     let pendingText = null;     // queued user message while connecting
     let currentTypingEl = null; // "thinking..." bubble
+    let toolInstructionSent = false;
 
     function addMessage(text, role) {
         const div = document.createElement('div');
@@ -2040,6 +2042,36 @@ function initChatPanel() {
         messages.appendChild(div);
         messages.scrollTop = messages.scrollHeight;
         return div;
+    }
+
+    function extractAddJokePayload(text) {
+        if (!text) return null;
+        const match = text.match(/```json([\s\S]*?)```/i) || text.match(/```([\s\S]*?)```/i);
+        if (!match) return null;
+        let payload = null;
+        try {
+            payload = JSON.parse(match[1].trim());
+        } catch {
+            return null;
+        }
+
+        if (payload?.name === 'add_joke' && payload.parameters) return payload.parameters;
+        if (payload?.tool === 'add_joke') {
+            return { text: payload.text, tags: payload.tags };
+        }
+        if (payload?.add_joke) return payload.add_joke;
+        return null;
+    }
+
+    async function tryAutoAddJokeFromAgent(text) {
+        const payload = extractAddJokePayload(text);
+        if (!payload || typeof window.add_joke !== 'function') return;
+        const result = await window.add_joke(payload);
+        if (result?.success) {
+            addMessage('✓ Added to your binder.', 'bot');
+        } else if (result?.message) {
+            addMessage(`Couldn't save: ${result.message}`, 'bot');
+        }
     }
 
     // ── ElevenLabs ConvAI WebSocket ──
@@ -2071,6 +2103,9 @@ function initChatPanel() {
                     if (text) {
                         if (currentTypingEl) { currentTypingEl.remove(); currentTypingEl = null; }
                         addMessage(text, 'bot');
+                        tryAutoAddJokeFromAgent(text).catch(err => {
+                            console.warn('[BitBuddy] Auto-add joke failed:', err);
+                        });
                     }
                     return;
                 }
@@ -2105,8 +2140,10 @@ function initChatPanel() {
             connectAgent();
             return;
         }
+        const composedText = toolInstructionSent ? text : `${TOOL_INSTRUCTION}\n\nUser: ${text}`;
+        toolInstructionSent = true;
         // Send text message to the ElevenLabs agent
-        ws.send(JSON.stringify({ user_text: text }));
+        ws.send(JSON.stringify({ user_text: composedText }));
     }
 
     // ── UI Controls ──
