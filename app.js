@@ -32,22 +32,103 @@ function saveJokes(jokes) {
     localStorage.setItem(STORAGE_KEYS.JOKES, JSON.stringify(jokes));
 }
 
+function normalizeJokeRecord(joke) {
+    return {
+        id: joke.id,
+        title: joke.title || 'New Joke',
+        text: joke.text || joke.setup || joke.body || '',
+        tags: Array.isArray(joke.tags) ? joke.tags : [],
+        folderId: joke.folderId || '',
+        createdAt: joke.createdAt || new Date().toISOString(),
+        updatedAt: joke.updatedAt || new Date().toISOString(),
+    };
+}
+
+function isCloudJokesEnabled() {
+    return typeof fbDB !== 'undefined' &&
+        typeof isFirebaseConfigured === 'function' &&
+        isFirebaseConfigured() &&
+        !!getCurrentUserId();
+}
+
+function getCloudJokesRef() {
+    const uid = getCurrentUserId();
+    if (!uid || !isCloudJokesEnabled()) return null;
+    return fbDB.collection('users').doc(String(uid)).collection('jokes');
+}
+
+function notifyJokesChanged() {
+    if (!window._appInitialized) return;
+    if (['jokes', 'joke-form', 'joke-folders', 'setlists', 'setlist-detail', 'record-set'].includes(currentView)) {
+        renderView();
+    }
+}
+
+async function upsertJokeInCloud(joke) {
+    const ref = getCloudJokesRef();
+    if (!ref) return;
+    const payload = {
+        title: joke.title || 'New Joke',
+        text: joke.text || '',
+        tags: Array.isArray(joke.tags) ? joke.tags : [],
+        folderId: joke.folderId || '',
+        createdAt: joke.createdAt || new Date().toISOString(),
+        updatedAt: joke.updatedAt || new Date().toISOString(),
+    };
+    await ref.doc(String(joke.id)).set(payload, { merge: true });
+}
+
+async function deleteJokeInCloud(id) {
+    const ref = getCloudJokesRef();
+    if (!ref) return;
+    await ref.doc(String(id)).delete();
+}
+
+function startJokesSync() {
+    const ref = getCloudJokesRef();
+    if (!ref || window._jokesSyncUnsub) return;
+
+    window._jokesSyncUnsub = ref.onSnapshot(snapshot => {
+        const jokes = snapshot.docs.map(doc => normalizeJokeRecord({ id: doc.id, ...doc.data() }));
+        saveJokes(jokes);
+        notifyJokesChanged();
+    }, err => {
+        console.warn('[Jokes] Firestore sync error:', err);
+    });
+}
+
 function addJoke(joke) {
     const jokes = getJokes();
-    joke.id = crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random();
-    joke.createdAt = new Date().toISOString();
-    joke.updatedAt = joke.createdAt;
-    jokes.push(joke);
+    const normalized = normalizeJokeRecord({
+        ...joke,
+        id: joke.id || (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random()),
+        createdAt: joke.createdAt || new Date().toISOString(),
+        updatedAt: joke.updatedAt || new Date().toISOString(),
+    });
+    jokes.push(normalized);
     saveJokes(jokes);
-    return joke;
+    if (isCloudJokesEnabled()) {
+        upsertJokeInCloud(normalized).catch(err => console.warn('[Jokes] Cloud add failed:', err));
+    }
+    notifyJokesChanged();
+    return normalized;
 }
 
 function updateJoke(id, updates) {
     const jokes = getJokes();
     const index = jokes.findIndex(j => j.id === id);
     if (index !== -1) {
-        jokes[index] = { ...jokes[index], ...updates, updatedAt: new Date().toISOString() };
+        jokes[index] = normalizeJokeRecord({
+            ...jokes[index],
+            ...updates,
+            id,
+            updatedAt: new Date().toISOString(),
+        });
         saveJokes(jokes);
+        if (isCloudJokesEnabled()) {
+            upsertJokeInCloud(jokes[index]).catch(err => console.warn('[Jokes] Cloud update failed:', err));
+        }
+        notifyJokesChanged();
         return jokes[index];
     }
     return null;
@@ -57,6 +138,10 @@ function deleteJoke(id) {
     let jokes = getJokes();
     jokes = jokes.filter(j => j.id !== id);
     saveJokes(jokes);
+    if (isCloudJokesEnabled()) {
+        deleteJokeInCloud(id).catch(err => console.warn('[Jokes] Cloud delete failed:', err));
+    }
+    notifyJokesChanged();
     // Set lists reference jokes by id; missing jokes are shown as warnings in the UI.
 }
 
@@ -2064,6 +2149,39 @@ function initChatPanel() {
     });
 }
 
+// ---------- Controlled Tool: add_joke ----------
+const addJokeToolSchema = {
+    name: 'add_joke',
+    parameters: {
+        type: 'object',
+        properties: {
+            text: { type: 'string' },
+            tags: { type: 'array', items: { type: 'string' } }
+        },
+        required: ['text']
+    }
+};
+
+function deriveJokeTitle(text) {
+    const trimmed = (text || '').trim().replace(/\s+/g, ' ');
+    if (!trimmed) return 'New Joke';
+    return trimmed.length > 30 ? `${trimmed.slice(0, 30)}...` : trimmed;
+}
+
+window.add_joke_schema = addJokeToolSchema;
+window.add_joke = async ({ text, tags } = {}) => {
+    const cleanText = (text || '').trim();
+    if (!cleanText) {
+        return { success: false, message: 'Text is required.' };
+    }
+    const joke = addJoke({
+        title: deriveJokeTitle(cleanText),
+        text: cleanText,
+        tags: Array.isArray(tags) ? tags : []
+    });
+    return { success: true, joke };
+};
+
 
 // ── App initialization (called after auth succeeds) ──
 function initApp() {
@@ -2079,6 +2197,7 @@ function initApp() {
     initUserFilesForm();
     renderUserFilesPanel();
     initChatPanel();
+    startJokesSync();
 
     // Parse initial hash
     const hash = window.location.hash.slice(1) || 'notepad';
